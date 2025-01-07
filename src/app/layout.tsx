@@ -1,10 +1,14 @@
-import { Inter } from 'next/font/google';
+// app/layout.tsx
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
+import { ThemeProvider } from "@/components/theme-provider";
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ subsets: ["latin"] });
 
-export const metadata = {
-    title: '네이버 실시간 검색어 트렌드',
-    description: '네이버 실시간 검색어 트렌드 분석',
+export const metadata: Metadata = {
+    title: "네이버 실시간 검색어 트렌드",
+    description: "네이버 데이터랩 API를 활용한 검색어 트렌드 분석",
 };
 
 export default function RootLayout({
@@ -13,9 +17,16 @@ export default function RootLayout({
     children: React.ReactNode;
 }) {
     return (
-        <html lang="ko">
-        <body className={`${inter.className} min-h-screen bg-gray-50`}>
-        {children}
+        <html lang="ko" suppressHydrationWarning>
+        <body className={inter.className}>
+        <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+        >
+            {children}
+        </ThemeProvider>
         </body>
         </html>
     );

@@ -1,38 +1,26 @@
 import { NextResponse } from 'next/server';
-import axios from 'axios';
-import {NaverTrendResponse} from "@/shared/types/trends";
+import type { SearchParams } from '@/shared/types/trends';
 
-export async function GET() {
+export async function POST(req: Request) {
     try {
-        const currentDate = new Date();
-        const startDate = new Date();
-        startDate.setMonth(currentDate.getMonth() - 1);
+        const params: SearchParams = await req.json();
 
-        const requestBody = {
-            startDate: startDate.toISOString().split('T')[0],
-            endDate: currentDate.toISOString().split('T')[0],
-            timeUnit: 'date',
-            keywordGroups: [
-                {
-                    groupName: "실시간 검색어",
-                    keywords: ["계엄령"]
-                }
-            ]
-        };
+        const response = await fetch('https://openapi.naver.com/v1/datalab/search', {
+            method: 'POST',
+            headers: {
+                'X-Naver-Client-Id': process.env.NAVER_CLIENT_ID!,
+                'X-Naver-Client-Secret': process.env.NAVER_CLIENT_SECRET!,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(params)
+        });
 
-        const response = await axios.post<NaverTrendResponse>(
-            'https://openapi.naver.com/v1/datalab/search',
-            requestBody,
-            {
-                headers: {
-                    'X-Naver-Client-Id': process.env.NAVER_CLIENT_ID!,
-                    'X-Naver-Client-Secret': process.env.NAVER_CLIENT_SECRET!,
-                    'Content-Type': 'application/json'
-                }
-            }
-        );
+        if (!response.ok) {
+            throw new Error('Naver API request failed');
+        }
 
-        return NextResponse.json(response.data);
+        const data = await response.json();
+        return NextResponse.json(data);
     } catch (error) {
         console.error('Error fetching search trends:', error);
         return NextResponse.json(

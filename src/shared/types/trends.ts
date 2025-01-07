@@ -18,3 +18,12 @@ export interface KeywordGroup {
     groupName: string;
     keywords: string[];
 }
+export interface SearchParams {
+    startDate: string;
+    endDate: string;
+    timeUnit: 'date' | 'week' | 'month';
+    keywordGroups: KeywordGroup[];
+    device?: 'pc' | 'mo';
+    gender?: 'm' | 'f';
+    ages?: string[];
+}
