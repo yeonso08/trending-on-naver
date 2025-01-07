@@ -119,16 +119,7 @@ export function TrendsDashboard() {
         </Alert>
       )}
 
-      {!loading && !error && trends.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>트렌드 분석 결과</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <TrendChart data={trends} />
-          </CardContent>
-        </Card>
-      )}
+      {!loading && !error && trends.length > 0 && <TrendChart data={trends} />}
     </div>
   )
 }
