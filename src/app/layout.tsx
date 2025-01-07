@@ -1,33 +1,29 @@
 // app/layout.tsx
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
-import { ThemeProvider } from "@/components/theme-provider";
+import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
+import './globals.css'
+import { ThemeProvider } from '@/components/theme-provider'
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-    title: "네이버 실시간 검색어 트렌드",
-    description: "네이버 데이터랩 API를 활용한 검색어 트렌드 분석",
-};
+  title: '네이버 실시간 검색어 트렌드',
+  description: '네이버 데이터랩 API를 활용한 검색어 트렌드 분석',
+}
 
-export default function RootLayout({
-                                       children,
-                                   }: {
-    children: React.ReactNode;
-}) {
-    return (
-        <html lang="ko" suppressHydrationWarning>
-        <body className={inter.className}>
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="ko" suppressHydrationWarning>
+      <body className={inter.className}>
         <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
         >
-            {children}
+          {children}
         </ThemeProvider>
-        </body>
-        </html>
-    );
+      </body>
+    </html>
+  )
 }
