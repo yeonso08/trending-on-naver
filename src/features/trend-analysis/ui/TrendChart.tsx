@@ -1,6 +1,6 @@
 'use client'
 
-import { XAxis, CartesianGrid, AreaChart, Area } from 'recharts'
+import { XAxis, CartesianGrid, AreaChart, Area, YAxis } from 'recharts'
 import { TrendData } from '@/shared/types/trends'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -29,6 +29,9 @@ export function TrendChart({ data }: TrendChartProps) {
     return <div>No data available</div>
   }
 
+  const maxRatio = Math.max(...data.map((item) => item.ratio))
+  const yAxisMax = Math.ceil(maxRatio * 1.2)
+
   return (
     <Card>
       <CardHeader>
@@ -52,6 +55,7 @@ export function TrendChart({ data }: TrendChartProps) {
               tickMargin={8}
               tickFormatter={(value) => format(value, 'MM.dd')}
             />
+            <YAxis domain={[0, yAxisMax]} tickLine={false} axisLine={false} tickMargin={8} />
             <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
             <Area
               dataKey="ratio"

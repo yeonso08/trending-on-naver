@@ -20,6 +20,17 @@ import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
 import type { SearchParams, KeywordGroup } from '@/shared/types/trends'
 import { ko } from 'date-fns/locale'
+import { z } from 'zod'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 
 interface SearchFormProps {
   onSearch: (params: SearchParams) => void
@@ -28,14 +39,32 @@ interface SearchFormProps {
 type GenderType = 'all' | 'm' | 'f'
 type DeviceType = 'all' | 'pc' | 'mo'
 
+const formSchema = z.object({
+  keywords: z.string().min(1, {
+    message: '검색어를 입력해주세요.',
+  }),
+  startDate: z.date({
+    required_error: '시작일을 선택해주세요.',
+  }),
+  endDate: z.date({
+    required_error: '종료일을 선택해주세요.',
+  }),
+})
+
 export function SearchForm({ onSearch }: SearchFormProps) {
-  const [startDate, setStartDate] = useState<Date | undefined>()
-  const [endDate, setEndDate] = useState<Date | undefined>()
   const [timeUnit, setTimeUnit] = useState<'date' | 'week' | 'month'>('date')
-  const [keywords, setKeywords] = useState('')
   const [device, setDevice] = useState<DeviceType>('all')
   const [gender, setGender] = useState<GenderType>('all')
   const [selectedAges, setSelectedAges] = useState<string[]>([])
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    mode: 'all',
+    defaultValues: {
+      keywords: '',
+      startDate: undefined,
+      endDate: undefined,
+    },
+  })
 
   const ageGroups = [
     { id: '1', label: '0-12세' },
@@ -51,11 +80,10 @@ export function SearchForm({ onSearch }: SearchFormProps) {
     { id: '11', label: '60세 이상' },
   ]
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!startDate || !endDate) return
+  const handleSubmit = (data: z.infer<typeof formSchema>) => {
+    if (!data.startDate || !data.endDate) return
 
-    const keywordList = keywords.split(',').map((k) => k.trim())
+    const keywordList = data.keywords.split(',').map((k) => k.trim())
     const keywordGroups: KeywordGroup[] = [
       {
         groupName: '검색어 그룹',
@@ -64,8 +92,8 @@ export function SearchForm({ onSearch }: SearchFormProps) {
     ]
 
     const params: SearchParams = {
-      startDate: format(startDate, 'yyyy-MM-dd'),
-      endDate: format(endDate, 'yyyy-MM-dd'),
+      startDate: format(data.startDate, 'yyyy-MM-dd'),
+      endDate: format(data.endDate, 'yyyy-MM-dd'),
       timeUnit,
       keywordGroups,
       ...(device !== 'all' && { device }),
@@ -82,160 +110,179 @@ export function SearchForm({ onSearch }: SearchFormProps) {
         <CardTitle>검색 조건 설정</CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="flex gap-4">
-            <div className=" space-y-1">
-              <Label>시작일</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      'w-full justify-start text-left font-normal',
-                      !startDate && 'text-muted-foreground'
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {startDate ? format(startDate, 'yyyy-MM-dd') : '날짜 선택'}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={startDate}
-                    onSelect={setStartDate}
-                    disabled={(date: Date): boolean =>
-                      date > new Date() || date < new Date('2016-01-01')
-                    }
-                    locale={ko}
-                  />
-                </PopoverContent>
-              </Popover>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+            <div className="flex gap-4">
+              <FormField
+                control={form.control}
+                name="startDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>시작일</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant={'outline'}
+                            className={cn(
+                              'w-full justify-start text-left font-normal',
+                              !field.value && 'text-muted-foreground'
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {field.value ? format(field.value, 'yyyy-MM-dd') : '날짜 선택'}
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          locale={ko}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="endDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>종료일</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              'w-full justify-start text-left font-normal',
+                              !field.value && 'text-muted-foreground'
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {field.value ? format(field.value, 'yyyy-MM-dd') : '날짜 선택'}
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          locale={ko}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
-            <div className="space-y-1">
-              <Label>종료일</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      'w-full justify-start text-left font-normal',
-                      !endDate && 'text-muted-foreground'
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {endDate ? format(endDate, 'yyyy-MM-dd') : '날짜 선택'}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={endDate}
-                    onSelect={setEndDate}
-                    disabled={(date: Date): boolean =>
-                      date > new Date() || Boolean(startDate && date < startDate)
-                    }
-                    locale={ko}
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-          </div>
-          <div className="space-y-1">
-            <Label>검색어 (쉼표로 구분)</Label>
-            <Input
-              value={keywords}
-              onChange={(e) => setKeywords(e.target.value)}
-              placeholder="예: 트렌드, 핫토픽, 실시간"
-              required
+            <FormField
+              control={form.control}
+              name="keywords"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>검색어 (쉼표로 구분)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="예: 트렌드, 핫토픽, 실시간" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="space-y-1">
-              <Label>시간 단위</Label>
-              <Select
-                value={timeUnit}
-                onValueChange={(value: 'date' | 'week' | 'month') => setTimeUnit(value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="시간 단위 선택" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="date">일간</SelectItem>
-                  <SelectItem value="week">주간</SelectItem>
-                  <SelectItem value="month">월간</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="space-y-1">
+                <Label>시간 단위</Label>
+                <Select
+                  value={timeUnit}
+                  onValueChange={(value: 'date' | 'week' | 'month') => setTimeUnit(value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="시간 단위 선택" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="date">일간</SelectItem>
+                    <SelectItem value="week">주간</SelectItem>
+                    <SelectItem value="month">월간</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-            <div className="space-y-1">
-              <Label>디바이스</Label>
-              <Select
-                value={device}
-                onValueChange={(value: string) => setDevice(value as DeviceType)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="디바이스 선택" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">전체</SelectItem>
-                  <SelectItem value="pc">PC</SelectItem>
-                  <SelectItem value="mo">모바일</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+              <div className="space-y-1">
+                <Label>디바이스</Label>
+                <Select
+                  value={device}
+                  onValueChange={(value: string) => setDevice(value as DeviceType)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="디바이스 선택" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">전체</SelectItem>
+                    <SelectItem value="pc">PC</SelectItem>
+                    <SelectItem value="mo">모바일</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-            <div className="space-y-1">
-              <Label>성별</Label>
-              <Select
-                value={gender}
-                onValueChange={(value: string) => setGender(value as GenderType)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="성별 선택" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">전체</SelectItem>
-                  <SelectItem value="m">남성</SelectItem>
-                  <SelectItem value="f">여성</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="space-y-1">
-            <Label>연령대</Label>
-            <div className="overflow-x-auto">
-              <div className="flex gap-4 min-w-max pb-3">
-                {ageGroups.map(({ id, label }) => (
-                  <div key={id} className="flex items-center gap-2">
-                    <Checkbox
-                      id={`age-${id}`}
-                      checked={selectedAges.includes(id)}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setSelectedAges((prev) => [...prev, id])
-                        } else {
-                          setSelectedAges((prev) => prev.filter((a) => a !== id))
-                        }
-                      }}
-                    />
-                    <label
-                      htmlFor={`age-${id}`}
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                    >
-                      {label}
-                    </label>
-                  </div>
-                ))}
+              <div className="space-y-1">
+                <Label>성별</Label>
+                <Select
+                  value={gender}
+                  onValueChange={(value: string) => setGender(value as GenderType)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="성별 선택" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">전체</SelectItem>
+                    <SelectItem value="m">남성</SelectItem>
+                    <SelectItem value="f">여성</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
-          </div>
-          <Button type="submit" className="text-end">
-            검색하기
-          </Button>
-        </form>
+
+            <div className="space-y-1">
+              <Label>연령대</Label>
+              <div className="overflow-x-auto">
+                <div className="flex gap-4 min-w-max pb-3">
+                  {ageGroups.map(({ id, label }) => (
+                    <div key={id} className="flex items-center gap-2">
+                      <Checkbox
+                        id={`age-${id}`}
+                        checked={selectedAges.includes(id)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedAges((prev) => [...prev, id])
+                          } else {
+                            setSelectedAges((prev) => prev.filter((a) => a !== id))
+                          }
+                        }}
+                      />
+                      <label
+                        htmlFor={`age-${id}`}
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
+                        {label}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <Button type="submit" className="text-end">
+              검색하기
+            </Button>
+          </form>
+        </Form>
       </CardContent>
     </Card>
   )
