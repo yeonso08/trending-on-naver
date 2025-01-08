@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -12,13 +11,20 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Label } from '@/components/ui/label'
 import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { CalendarIcon } from 'lucide-react'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
-import type { SearchParams, KeywordGroup } from '@/shared/types/trends'
+import {
+  SearchParams,
+  KeywordGroup,
+  TimeUnitType,
+  DeviceType,
+  GenderType,
+  AGE_TYPE_KO,
+  AgeType,
+} from '@/shared/types/trends'
 import { ko } from 'date-fns/locale'
 import { z } from 'zod'
 import {
@@ -36,9 +42,6 @@ interface SearchFormProps {
   onSearch: (params: SearchParams) => void
 }
 
-type GenderType = 'all' | 'm' | 'f'
-type DeviceType = 'all' | 'pc' | 'mo'
-
 const formSchema = z.object({
   keywords: z.string().min(1, {
     message: '검색어를 입력해주세요.',
@@ -49,13 +52,13 @@ const formSchema = z.object({
   endDate: z.date({
     required_error: '종료일을 선택해주세요.',
   }),
+  timeUnit: z.custom<TimeUnitType>(),
+  device: z.custom<DeviceType>(),
+  gender: z.custom<GenderType>(),
+  ages: z.array(z.custom<AgeType>()).optional(),
 })
 
 export function SearchForm({ onSearch }: SearchFormProps) {
-  const [timeUnit, setTimeUnit] = useState<'date' | 'week' | 'month'>('date')
-  const [device, setDevice] = useState<DeviceType>('all')
-  const [gender, setGender] = useState<GenderType>('all')
-  const [selectedAges, setSelectedAges] = useState<string[]>([])
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     mode: 'all',
@@ -63,22 +66,12 @@ export function SearchForm({ onSearch }: SearchFormProps) {
       keywords: '',
       startDate: undefined,
       endDate: undefined,
+      timeUnit: 'date',
+      device: 'all',
+      gender: 'all',
+      ages: [],
     },
   })
-
-  const ageGroups = [
-    { id: '1', label: '0-12세' },
-    { id: '2', label: '13-18세' },
-    { id: '3', label: '19-24세' },
-    { id: '4', label: '25-29세' },
-    { id: '5', label: '30-34세' },
-    { id: '6', label: '35-39세' },
-    { id: '7', label: '40-44세' },
-    { id: '8', label: '45-49세' },
-    { id: '9', label: '50-54세' },
-    { id: '10', label: '55-59세' },
-    { id: '11', label: '60세 이상' },
-  ]
 
   const handleSubmit = (data: z.infer<typeof formSchema>) => {
     if (!data.startDate || !data.endDate) return
@@ -94,11 +87,11 @@ export function SearchForm({ onSearch }: SearchFormProps) {
     const params: SearchParams = {
       startDate: format(data.startDate, 'yyyy-MM-dd'),
       endDate: format(data.endDate, 'yyyy-MM-dd'),
-      timeUnit,
+      timeUnit: data.timeUnit,
       keywordGroups,
-      ...(device !== 'all' && { device }),
-      ...(gender !== 'all' && { gender }),
-      ...(selectedAges.length > 0 && { ages: selectedAges }),
+      ...(data.device !== 'all' && { device: data.device }),
+      ...(data.gender !== 'all' && { gender: data.gender }),
+      ...(data.ages && { ages: data.ages }),
     }
 
     onSearch(params)
@@ -198,84 +191,130 @@ export function SearchForm({ onSearch }: SearchFormProps) {
             />
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="space-y-1">
-                <Label>시간 단위</Label>
-                <Select
-                  value={timeUnit}
-                  onValueChange={(value: 'date' | 'week' | 'month') => setTimeUnit(value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="시간 단위 선택" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="date">일간</SelectItem>
-                    <SelectItem value="week">주간</SelectItem>
-                    <SelectItem value="month">월간</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-1">
-                <Label>디바이스</Label>
-                <Select
-                  value={device}
-                  onValueChange={(value: string) => setDevice(value as DeviceType)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="디바이스 선택" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">전체</SelectItem>
-                    <SelectItem value="pc">PC</SelectItem>
-                    <SelectItem value="mo">모바일</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-1">
-                <Label>성별</Label>
-                <Select
-                  value={gender}
-                  onValueChange={(value: string) => setGender(value as GenderType)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="성별 선택" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">전체</SelectItem>
-                    <SelectItem value="m">남성</SelectItem>
-                    <SelectItem value="f">여성</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <FormField
+                control={form.control}
+                name="timeUnit"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>시간 단위</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="시간 단위 선택" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="date">일간</SelectItem>
+                        <SelectItem value="week">주간</SelectItem>
+                        <SelectItem value="month">월간</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="device"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>디바이스</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="디바이스 선택" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="all">전체</SelectItem>
+                        <SelectItem value="pc">PC</SelectItem>
+                        <SelectItem value="mo">모바일</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="gender"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>성별</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="성별 선택" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="all">전체</SelectItem>
+                        <SelectItem value="m">남성</SelectItem>
+                        <SelectItem value="f">여성</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormItem>
+                )}
+              />
             </div>
+            <FormField
+              control={form.control}
+              name="ages"
+              render={() => (
+                <FormItem>
+                  <FormLabel>연령대</FormLabel>
+                  <div className="grid gap-2 grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                    {(Object.entries(AGE_TYPE_KO) as [AgeType, string][])
+                      .sort(([keyA], [keyB]) => {
+                        if (keyA === 'all') return -1
+                        if (keyB === 'all') return 1
+                        return Number(keyA) - Number(keyB)
+                      })
+                      .map(([id, label]) => (
+                        <FormField
+                          key={id}
+                          control={form.control}
+                          name="ages"
+                          render={({ field }) => {
+                            const allAges = Object.keys(AGE_TYPE_KO).filter((key) => key !== 'all')
 
-            <div className="space-y-2">
-              <Label>연령대</Label>
-              <div className="grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-                {ageGroups.map(({ id, label }) => (
-                  <div key={id} className="flex items-center gap-2">
-                    <Checkbox
-                      id={`age-${id}`}
-                      checked={selectedAges.includes(id)}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setSelectedAges((prev) => [...prev, id])
-                        } else {
-                          setSelectedAges((prev) => prev.filter((a) => a !== id))
-                        }
-                      }}
-                    />
-                    <label
-                      htmlFor={`age-${id}`}
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                    >
-                      {label}
-                    </label>
+                            return (
+                              <FormItem
+                                key={id}
+                                className="flex flex-row items-start space-x-2 space-y-0"
+                              >
+                                <FormControl>
+                                  <Checkbox
+                                    checked={
+                                      id === 'all'
+                                        ? field.value?.length === allAges.length
+                                        : field.value?.includes(id)
+                                    }
+                                    onCheckedChange={(checked) => {
+                                      if (id === 'all') {
+                                        field.onChange(checked ? allAges : [])
+                                      } else {
+                                        if (checked) {
+                                          const newValue = [...(field.value ?? []), id]
+                                          field.onChange(newValue)
+                                        } else {
+                                          const newValue = (field.value ?? []).filter(
+                                            (value) => value !== id
+                                          )
+                                          field.onChange(newValue)
+                                        }
+                                      }
+                                    }}
+                                  />
+                                </FormControl>
+                                <FormLabel className="font-normal">{label}</FormLabel>
+                              </FormItem>
+                            )
+                          }}
+                        />
+                      ))}
                   </div>
-                ))}
-              </div>
-            </div>
+                </FormItem>
+              )}
+            />
             <Button type="submit" className="text-end">
               검색하기
             </Button>

@@ -5,7 +5,13 @@ import { SearchForm } from '@/features/trend-analysis/ui/SearchForm'
 import { TrendChart } from '@/features/trend-analysis/ui/TrendChart'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import type { SearchParams, TrendData } from '@/shared/types/trends'
+import {
+  DEVICE_TYPE_KO,
+  GENDER_TYPE_KO,
+  SearchParams,
+  TIME_UNIT_KO,
+  TrendData,
+} from '@/shared/types/trends'
 
 export function TrendsDashboard() {
   const [loading, setLoading] = useState(false)
@@ -63,18 +69,18 @@ export function TrendsDashboard() {
               </div>
               <div>
                 <dt className="text-sm font-medium text-gray-500">시간 단위</dt>
-                <dd>{currentParams.timeUnit}</dd>
+                <dd>{TIME_UNIT_KO[currentParams.timeUnit]}</dd>
               </div>
               {currentParams.device && (
                 <div>
                   <dt className="text-sm font-medium text-gray-500">디바이스</dt>
-                  <dd>{currentParams.device === 'pc' ? 'PC' : '모바일'}</dd>
+                  <dd>{DEVICE_TYPE_KO[currentParams.device]}</dd>
                 </div>
               )}
               {currentParams.gender && (
                 <div>
                   <dt className="text-sm font-medium text-gray-500">성별</dt>
-                  <dd>{currentParams.gender === 'm' ? '남성' : '여성'}</dd>
+                  <dd>{GENDER_TYPE_KO[currentParams.gender]}</dd>
                 </div>
               )}
               {currentParams.ages && currentParams.ages.length > 0 && (
