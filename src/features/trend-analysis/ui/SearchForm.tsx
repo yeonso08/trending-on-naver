@@ -250,32 +250,30 @@ export function SearchForm({ onSearch }: SearchFormProps) {
               </div>
             </div>
 
-            <div className="space-y-1">
+            <div className="space-y-2">
               <Label>연령대</Label>
-              <div className="overflow-x-auto">
-                <div className="flex gap-4 min-w-max pb-3">
-                  {ageGroups.map(({ id, label }) => (
-                    <div key={id} className="flex items-center gap-2">
-                      <Checkbox
-                        id={`age-${id}`}
-                        checked={selectedAges.includes(id)}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setSelectedAges((prev) => [...prev, id])
-                          } else {
-                            setSelectedAges((prev) => prev.filter((a) => a !== id))
-                          }
-                        }}
-                      />
-                      <label
-                        htmlFor={`age-${id}`}
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        {label}
-                      </label>
-                    </div>
-                  ))}
-                </div>
+              <div className="grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                {ageGroups.map(({ id, label }) => (
+                  <div key={id} className="flex items-center gap-2">
+                    <Checkbox
+                      id={`age-${id}`}
+                      checked={selectedAges.includes(id)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setSelectedAges((prev) => [...prev, id])
+                        } else {
+                          setSelectedAges((prev) => prev.filter((a) => a !== id))
+                        }
+                      }}
+                    />
+                    <label
+                      htmlFor={`age-${id}`}
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      {label}
+                    </label>
+                  </div>
+                ))}
               </div>
             </div>
             <Button type="submit" className="text-end">

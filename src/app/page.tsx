@@ -29,7 +29,7 @@ export default async function Home() {
   const trends = await getTrends()
 
   return (
-    <main className="container mx-auto py-6 px-4 sm:px-6 lg:px-8 flex gap-8">
+    <main className="container mx-auto py-6 px-4 sm:px-6 lg:px-8 lg:flex space-y-4 gap-8">
       {/*<ModeToggle />*/}
 
       <TrendingSearches initialData={trends} />
