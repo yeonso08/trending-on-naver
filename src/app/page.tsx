@@ -11,7 +11,7 @@ async function getTrends() {
       'Accept-Language': 'ko-KR,ko;q=0.9',
     },
     next: {
-      revalidate: 300, // 5분마다 재검증
+      revalidate: 60,
     },
   })
 
