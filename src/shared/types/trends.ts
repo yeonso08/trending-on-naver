@@ -48,8 +48,8 @@ export const GENDER_TYPE_KO: Record<GenderType, string> = {
   m: '남성',
   f: '여성',
 }
-export type AgeType = 'all' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | '11'
 
+export type AgeType = 'all' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | '11'
 export const AGE_TYPE_KO: Record<AgeType, string> = {
   all: '전체',
   '1': '0-12세',

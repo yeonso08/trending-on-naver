@@ -6,6 +6,8 @@ import { TrendChart } from '@/features/trend-analysis/ui/TrendChart'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import {
+  AGE_TYPE_KO,
+  AgeType,
   DEVICE_TYPE_KO,
   GENDER_TYPE_KO,
   SearchParams,
@@ -44,6 +46,17 @@ export function TrendsDashboard() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const formatAgeDisplay = (ages: AgeType[] | undefined) => {
+    if (!ages || ages.length === 0) return ''
+
+    const allAgeValues = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11']
+    if (ages.includes('all') || allAgeValues.every((age) => ages.includes(age as AgeType))) {
+      return AGE_TYPE_KO['all']
+    }
+
+    return ages.map((age) => AGE_TYPE_KO[age]).join(', ')
   }
 
   return (
@@ -86,7 +99,7 @@ export function TrendsDashboard() {
               {currentParams.ages && currentParams.ages.length > 0 && (
                 <div>
                   <dt className="text-sm font-medium text-gray-500">연령대</dt>
-                  <dd>{currentParams.ages.join(', ')}</dd>
+                  <dd>{formatAgeDisplay(currentParams.ages)}</dd>
                 </div>
               )}
             </dl>

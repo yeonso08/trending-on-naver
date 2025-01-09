@@ -55,7 +55,7 @@ const formSchema = z.object({
   timeUnit: z.custom<TimeUnitType>(),
   device: z.custom<DeviceType>(),
   gender: z.custom<GenderType>(),
-  ages: z.array(z.custom<AgeType>()).optional(),
+  ages: z.array(z.custom<AgeType>()).min(1, { message: '연령대를 선택해주세요.' }),
 })
 
 export function SearchForm({ onSearch }: SearchFormProps) {
@@ -312,6 +312,7 @@ export function SearchForm({ onSearch }: SearchFormProps) {
                         />
                       ))}
                   </div>
+                  <FormMessage />
                 </FormItem>
               )}
             />
