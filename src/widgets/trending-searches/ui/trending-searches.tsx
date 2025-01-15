@@ -10,7 +10,6 @@ interface TrendingSearchesProps {
 
 export function TrendingSearches({ initialData }: TrendingSearchesProps) {
   const [topics] = useState<TrendingTopic[]>(initialData)
-  const [selectedTopic, setSelectedTopic] = useState<TrendingTopic | null>(null)
 
   return (
     <div className="flex-1">
@@ -19,12 +18,8 @@ export function TrendingSearches({ initialData }: TrendingSearchesProps) {
         <p className="text-muted-foreground mt-2">대한민국의 실시간 인기 검색어를 확인하세요</p>
       </div>
 
-      <div className=" gap-6">
-        <TrendingList
-          topics={topics}
-          selectedTopic={selectedTopic}
-          onSelectTopic={setSelectedTopic}
-        />
+      <div className="gap-6">
+        <TrendingList topics={topics} />
         {/*{selectedTopic && <TrendingDetail topic={selectedTopic} />}*/}
       </div>
     </div>

@@ -1,6 +1,7 @@
 import { TrendsDashboard } from '@/widgets/trends-dashboard/ui/TrendsDashboard'
 import { XMLParser } from 'fast-xml-parser'
 import { TrendingSearches } from '@/widgets/trending-searches/ui/trending-searches'
+import { ModeToggle } from '@/components/mode-toggle'
 
 async function getTrends() {
   const response = await fetch('https://trends.google.co.kr/trending/rss?geo=KR', {
@@ -29,19 +30,22 @@ export default async function Home() {
   const trends = await getTrends()
 
   return (
-    <main className="container mx-auto py-6 px-4 sm:px-6 lg:px-8 lg:flex space-y-4 gap-8">
-      {/*<ModeToggle />*/}
+    <main className="container mx-auto py-6 px-4 sm:px-6 lg:px-8">
+      <div className="text-end">
+        <ModeToggle />
+      </div>
+      <div className="lg:flex gap-8 space-y-4 lg:space-y-0 ">
+        <TrendingSearches initialData={trends} />
 
-      <TrendingSearches initialData={trends} />
-
-      <div className="flex-1">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight">네이버 실시간 검색어 트렌드</h1>
-          <p className="text-muted-foreground mt-2">
-            네이버 데이터랩 API를 활용한 검색어 트렌드 분석 대시보드
-          </p>
+        <div className="flex-1">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold tracking-tight">네이버 실시간 검색어 트렌드</h1>
+            <p className="text-muted-foreground mt-2">
+              네이버 데이터랩 API를 활용한 검색어 트렌드 분석 대시보드
+            </p>
+          </div>
+          <TrendsDashboard />
         </div>
-        <TrendsDashboard />
       </div>
     </main>
   )
