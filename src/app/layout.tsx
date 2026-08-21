@@ -1,31 +1,74 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import './fonts.css'
 import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
+import { SITE } from '@/shared/config/site'
+import { SiteFooter } from '@/widgets/site-footer/ui/site-footer'
+import { SiteHeader } from '@/widgets/site-header/ui/site-header'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 
-const inter = Inter({ subsets: ['latin'] })
-
 export const metadata: Metadata = {
-  title: '네이버 실시간 검색어 트렌드',
-  description: '네이버 데이터랩 API를 활용한 검색어 트렌드 분석',
+  metadataBase: new URL(SITE.url),
+  title: {
+    default: `${SITE.name} — ${SITE.tagline}`,
+    template: `%s | ${SITE.name}`,
+  },
+  description: SITE.description,
+  applicationName: SITE.name,
+  openGraph: {
+    type: 'website',
+    locale: SITE.locale,
+    siteName: SITE.name,
+    title: `${SITE.name} — ${SITE.tagline}`,
+    description: SITE.description,
+    url: SITE.url,
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: `${SITE.name} — ${SITE.tagline}`,
+    description: SITE.description,
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 }
+
+/**
+ * Pretendard 동적 서브셋 중 사용 빈도가 가장 높은 3개.
+ * 한글 페이지에서는 사실상 항상 필요하므로 미리 받아 FOUT을 줄인다.
+ */
+const PRELOADED_FONT_SUBSETS = [91, 90, 89]
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ko" suppressHydrationWarning>
-      <body className={inter.className}>
-        <Analytics />
-        <SpeedInsights />
+      <head>
+        {PRELOADED_FONT_SUBSETS.map((index) => (
+          <link
+            key={index}
+            rel="preload"
+            as="font"
+            type="font/woff2"
+            crossOrigin="anonymous"
+            href={`/fonts/pretendard/PretendardVariable.subset.${index}.woff2`}
+          />
+        ))}
+      </head>
+      <body className="flex min-h-screen flex-col">
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <SiteHeader />
+          <main className="flex-1">{children}</main>
+          <SiteFooter />
         </ThemeProvider>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   )
