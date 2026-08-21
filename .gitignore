@@ -33,6 +33,11 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# pnpm
+# allowBuilds만 담긴 로컬 설정. 커밋하면 Vercel의 pnpm 9가 packages 필드를
+# 요구하며 install 단계에서 실패한다 (ERROR packages field missing or empty).
+pnpm-workspace.yaml
+
 # vercel
 .vercel
 
