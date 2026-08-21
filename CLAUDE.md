@@ -16,7 +16,13 @@
 
 ## 명령어
 
-패키지 매니저는 **pnpm** (`pnpm-lock.yaml`, `pnpm-workspace.yaml` 존재). npm/yarn 쓰지 말 것.
+패키지 매니저는 **pnpm**. npm/yarn 쓰지 말 것.
+
+⚠️ **로컬은 pnpm 11인데 Vercel은 pnpm 9를 씁니다**(프로젝트 생성 시점 기준). 의존성이나 빌드 설정을 건드렸다면 배포 전에 Vercel과 같은 조건으로 확인하세요.
+
+```bash
+npx pnpm@9 install --frozen-lockfile   # 통과해야 배포됨
+```
 
 ```bash
 pnpm dev      # next dev --turbopack
@@ -41,6 +47,30 @@ NAVER_CLIENT_SECRET=
 ```
 
 둘 다 없으면 `/api/trends`가 503을 반환하고 차트만 동작하지 않습니다. 실시간 검색어 목록은 키 없이도 동작합니다.
+
+## 배포 (Vercel)
+
+프로덕션: https://trending-on-naver.vercel.app
+
+**환경 변수는 Vercel 프로젝트 설정에도 등록해야 합니다.** `.env.local`은 로컬 전용이라, 없으면 배포본에서 차트만 조용히 사라집니다(`/api/trends`가 503).
+
+배포에서 실제로 겪은 함정들:
+
+1. **`pnpm-workspace.yaml`을 커밋하지 마세요.** `allowBuilds`만 담긴 pnpm 11의 로컬 산출물인데, pnpm 9는 이 파일이 있으면 워크스페이스 선언으로 보고 `packages` 필드를 요구해 install 단계에서 죽습니다 (`ERROR packages field missing or empty`). `.gitignore`에 넣어 두었습니다.
+2. **Vercel은 취약한 Next.js 버전의 배포를 차단합니다.** 빌드는 `Build Completed`까지 정상으로 끝나고 그 다음 `Deploying outputs...` 단계에서 실패하므로, 빌드 로그만 보면 원인을 못 찾습니다. 로그 마지막 줄을 확인하세요.
+
+   ```
+   Vulnerable version of Next.js detected, please update immediately.
+   ```
+
+   `pnpm audit`으로 필요한 최소 버전을 확인하고 올리면 됩니다.
+3. **배포 로그는 CLI로 봅니다.** GitHub 체크에는 성공/실패만 나옵니다.
+
+   ```bash
+   npx vercel login                       # 최초 1회
+   npx vercel ls trending-on-naver        # 배포 목록과 상태
+   npx vercel inspect <배포URL> --logs    # 전체 로그
+   ```
 
 ## 아키텍처 (FSD, Feature-Sliced Design)
 
@@ -142,14 +172,4 @@ src/
 
 방치했던 프로젝트를 영리 서비스로 되살리는 중입니다 (주간 방문자 ~30명).
 
-**완료**
-1. 폰트 정리 — Pretendard 자체 호스팅
-2. 디자인 전면 개편 — 디자인 토큰 재정의, 헤더/푸터 셸, 랭킹 UI, 광고 지면 확보
-3. 검색어 상세 페이지 + 정적 문서 페이지 + sitemap/robots
-
-**남은 일**
-1. **네이버 API HUB 이관 확인** — 위 경고 참고. 가장 급합니다.
-2. ~~실시간 검색어 데이터 소스 결정~~ — **해결됨.** 구글 공식 RSS 피드를 그대로 씁니다.
-3. **AdSense 신청** — 지면과 필수 페이지는 준비됨. `CONTACT_EMAIL` 교체와 실제 광고 스크립트 삽입이 남음.
-4. **OG 이미지** — `opengraph-image.tsx`로 동적 생성하면 SNS 공유 유입에 도움이 됩니다.
-5. **검색어 이력 저장** — 상세 페이지가 순위에서 내려가도 살아남게 하려면 필요합니다. SEO 관점에서 가장 효과가 큰 다음 단계입니다.
+진행 상황과 다음 할 일은 **[docs/PROGRESS.md](docs/PROGRESS.md)** 에 정리해 두었습니다. 작업을 시작하기 전에 그 문서부터 확인하세요.
