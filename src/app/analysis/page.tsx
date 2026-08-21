@@ -1,0 +1,42 @@
+import type { Metadata } from 'next'
+
+import { SITE } from '@/shared/config/site'
+import { AdSlot } from '@/shared/ui/ad-slot'
+import { TrendsDashboard } from '@/widgets/trends-dashboard/ui/TrendsDashboard'
+
+export const metadata: Metadata = {
+  title: '검색어 트렌드 분석',
+  description:
+    '네이버 데이터랩 기반으로 검색어의 기간별 검색량 추이를 비교합니다. 성별, 연령대, 디바이스별로 세분화해 확인할 수 있습니다.',
+  alternates: { canonical: '/analysis' },
+}
+
+export default function AnalysisPage() {
+  return (
+    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
+      <header className="max-w-2xl">
+        <h1 className="text-3xl font-extrabold tracking-tight sm:text-[38px]">검색어 트렌드 분석</h1>
+        <p className="mt-3 text-[15px] leading-relaxed text-muted-foreground">
+          궁금한 검색어를 넣고 기간·성별·연령대·디바이스별 검색량 추이를 확인하세요. 데이터는 네이버
+          데이터랩에서 제공받습니다.
+        </p>
+      </header>
+
+      <div className="mt-8">
+        <AdSlot format="leaderboard" debug />
+      </div>
+
+      <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start">
+        <TrendsDashboard />
+        <div className="lg:sticky lg:top-20">
+          <AdSlot format="rectangle" debug />
+        </div>
+      </div>
+
+      <p className="mt-10 text-[12px] leading-relaxed text-muted-foreground">
+        {SITE.name}이 제공하는 수치는 기간 내 최고 검색량을 100으로 둔 상대값이며, 실제 검색 횟수의
+        절댓값이 아닙니다.
+      </p>
+    </div>
+  )
+}

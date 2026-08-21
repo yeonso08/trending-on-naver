@@ -1,0 +1,47 @@
+import Link from 'next/link'
+
+import { ModeToggle } from '@/components/mode-toggle'
+import { NAV_LINKS, SITE } from '@/shared/config/site'
+
+function NavLinks({ className }: { className?: string }) {
+  return (
+    <nav className={className}>
+      {NAV_LINKS.map((link) => (
+        <Link
+          key={link.href}
+          href={link.href}
+          className="shrink-0 rounded-md px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+        >
+          {link.label}
+        </Link>
+      ))}
+    </nav>
+  )
+}
+
+export function SiteHeader() {
+  return (
+    <header className="sticky top-0 z-50 border-b border-border/70 bg-background/80 backdrop-blur-md">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+        <div className="flex h-14 items-center gap-6">
+          <Link href="/" className="flex shrink-0 items-center gap-2.5">
+            <span className="grid h-7 w-7 place-items-center rounded-md bg-heat text-[13px] font-extrabold text-heat-foreground">
+              T
+            </span>
+            <span className="text-[15px] font-bold tracking-tight">{SITE.name}</span>
+          </Link>
+
+          {/* 넓은 화면에서는 로고 옆에 붙인다 */}
+          <NavLinks className="hidden items-center gap-1 sm:flex" />
+
+          <div className="ml-auto shrink-0">
+            <ModeToggle />
+          </div>
+        </div>
+
+        {/* 좁은 화면에서는 아래 줄로 내려 가로 스크롤시킨다 */}
+        <NavLinks className="-mx-1 flex items-center gap-1 overflow-x-auto pb-2 sm:hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" />
+      </div>
+    </header>
+  )
+}
