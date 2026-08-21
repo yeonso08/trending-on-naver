@@ -35,11 +35,11 @@ export const TIME_UNIT_KO: Record<TimeUnitType, string> = {
   month: '월간',
 }
 
-export type DeviceType = 'pc' | 'm' | 'all'
+export type DeviceType = 'pc' | 'mo' | 'all'
 export const DEVICE_TYPE_KO: Record<DeviceType, string> = {
   all: '전체',
   pc: '데스크탑',
-  m: '모바일',
+  mo: '모바일',
 }
 
 export type GenderType = 'all' | 'm' | 'f'
