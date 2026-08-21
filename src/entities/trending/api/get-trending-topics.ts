@@ -4,6 +4,8 @@ import type { TrendingNewsItem, TrendingTopic } from '@/entities/trending/model/
 
 const TRENDS_RSS_URL = 'https://trends.google.co.kr/trending/rss?geo=KR'
 const REVALIDATE_SECONDS = 60
+/** 빌드가 서드파티 응답을 무한정 기다리지 않도록 상한을 둔다 */
+const REQUEST_TIMEOUT_MS = 10_000
 
 /** XMLParser는 항목이 하나면 객체, 여럿이면 배열로 준다. 항상 배열로 맞춘다. */
 function toArray<T>(value: T | T[] | undefined): T[] {
@@ -47,12 +49,27 @@ function mapNewsItem(raw: RawNewsItem): TrendingNewsItem | null {
   }
 }
 
+/**
+ * 구글 RSS는 서드파티 의존이고 빌드는 미국 리전에서 돈다. 여기서 예외를 던지면
+ * 프리렌더 단계가 통째로 실패해 배포 자체가 깨진다. 조회 실패는 빈 배열로 처리하고
+ * 호출부가 빈 목록을 다루게 한다. ISR이 다음 주기에 다시 시도한다.
+ */
 export async function getTrendingTopics(): Promise<TrendingTopic[]> {
+  try {
+    return await fetchTrendingTopics()
+  } catch (error) {
+    console.error('실시간 검색어 조회 실패:', error)
+    return []
+  }
+}
+
+async function fetchTrendingTopics(): Promise<TrendingTopic[]> {
   const response = await fetch(TRENDS_RSS_URL, {
     headers: {
       Accept: 'application/rss+xml, application/xml',
       'Accept-Language': 'ko-KR,ko;q=0.9',
     },
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     next: { revalidate: REVALIDATE_SECONDS },
   })
 

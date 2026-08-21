@@ -12,19 +12,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE.url}/terms`, changeFrequency: 'yearly', priority: 0.2 },
   ]
 
-  try {
-    const topics = await getTrendingTopics()
-    return [
-      ...staticRoutes,
-      ...topics.map((topic) => ({
-        url: `${SITE.url}/keyword/${topic.slug}`,
-        lastModified: topic.pubDate ? new Date(topic.pubDate) : undefined,
-        changeFrequency: 'hourly' as const,
-        priority: 0.6,
-      })),
-    ]
-  } catch {
-    // 트렌드 조회가 실패해도 사이트맵 자체는 나가야 한다
-    return staticRoutes
-  }
+  // getTrendingTopics는 실패 시 빈 배열을 준다. 사이트맵은 어떤 경우에도 나간다.
+  const topics = await getTrendingTopics()
+
+  return [
+    ...staticRoutes,
+    ...topics.map((topic) => ({
+      url: `${SITE.url}/keyword/${topic.slug}`,
+      lastModified: topic.pubDate ? new Date(topic.pubDate) : undefined,
+      changeFrequency: 'hourly' as const,
+      priority: 0.6,
+    })),
+  ]
 }
