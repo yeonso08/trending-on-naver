@@ -1,52 +1,43 @@
-import { TrendsDashboard } from '@/widgets/trends-dashboard/ui/TrendsDashboard'
-import { XMLParser } from 'fast-xml-parser'
+import type { Metadata } from 'next'
+
+import { getTrendingTopics } from '@/entities/trending/api/get-trending-topics'
+import { SITE } from '@/shared/config/site'
+import { AdSlot } from '@/shared/ui/ad-slot'
 import { TrendingSearches } from '@/widgets/trending-searches/ui/trending-searches'
-import { ModeToggle } from '@/components/mode-toggle'
 
-async function getTrends() {
-  const response = await fetch('https://trends.google.co.kr/trending/rss?geo=KR', {
-    headers: {
-      'User-Agent':
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      Accept: 'application/xml',
-      'Accept-Language': 'ko-KR,ko;q=0.9',
-    },
-    next: {
-      revalidate: 60,
-    },
-  })
-
-  const xmlData = await response.text()
-  const parser = new XMLParser({
-    ignoreAttributes: false,
-    attributeNamePrefix: '@_',
-  })
-
-  const result = parser.parse(xmlData)
-  return result.rss.channel.item
+export const metadata: Metadata = {
+  title: `실시간 인기 검색어 순위 | ${SITE.name}`,
+  description: SITE.description,
+  alternates: { canonical: '/' },
 }
 
 export default async function Home() {
-  const trends = await getTrends()
+  const topics = await getTrendingTopics()
 
   return (
-    <main className="container mx-auto py-6 px-4 sm:px-6 lg:px-8">
-      <div className="text-end">
-        <ModeToggle />
-      </div>
-      <div className="lg:flex gap-8 space-y-4 lg:space-y-0 ">
-        <TrendingSearches initialData={trends} />
+    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
+      <section className="mx-auto max-w-2xl text-center">
+        <h1 className="text-balance text-3xl font-extrabold leading-[1.15] tracking-tight sm:text-[42px]">
+          지금 대한민국이
+          <br className="sm:hidden" />
+          <span className="text-heat"> 검색하는 것</span>
+        </h1>
+        <p className="mt-4 text-pretty text-[15px] leading-relaxed text-muted-foreground">
+          실시간 인기 검색어 순위를 확인하고, 궁금한 키워드의 검색량 추이를 그래프로 비교해 보세요.
+        </p>
+      </section>
 
-        <div className="flex-1">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold tracking-tight">네이버 실시간 검색어 트렌드</h1>
-            <p className="text-muted-foreground mt-2">
-              네이버 데이터랩 API를 활용한 검색어 트렌드 분석 대시보드
-            </p>
-          </div>
-          <TrendsDashboard />
+      <div className="mt-8">
+        <AdSlot format="leaderboard" debug />
+      </div>
+
+      <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start">
+        <TrendingSearches topics={topics} />
+
+        <div className="space-y-6 lg:sticky lg:top-20">
+          <AdSlot format="rectangle" debug />
         </div>
       </div>
-    </main>
+    </div>
   )
 }
