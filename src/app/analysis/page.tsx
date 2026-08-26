@@ -20,7 +20,9 @@ export default async function AnalysisPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
       <header className="max-w-2xl">
-        <h1 className="text-3xl font-extrabold tracking-tight sm:text-[38px]">검색어 트렌드 분석</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight sm:text-[38px]">
+          검색어 트렌드 분석
+        </h1>
         <p className="mt-3 text-[15px] leading-relaxed text-muted-foreground">
           검색어 하나가 언제 얼마나 관심을 받았는지 그래프로 확인하세요.
         </p>
