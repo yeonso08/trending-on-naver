@@ -13,6 +13,7 @@ export const metadata: Metadata = {
 
 export default async function Home() {
   const topics = await getTrendingTopics()
+  const fetchedAt = new Date().toISOString()
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
@@ -32,7 +33,7 @@ export default async function Home() {
       </div>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start">
-        <TrendingSearches topics={topics} />
+        <TrendingSearches topics={topics} fetchedAt={fetchedAt} />
 
         <div className="space-y-6 lg:sticky lg:top-20">
           <AdSlot format="rectangle" debug />

@@ -1,16 +1,26 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+
 import type { TrendingTopic } from '@/entities/trending/model/types'
 import { TrendingList } from '@/features/trending-list/ui/trending-list'
 
+/** 열려 있는 탭이 이후 몇 분 지나도 저절로 최신화되도록 하는 폴링 주기 */
+const POLL_INTERVAL_MS = 60_000
+
 interface TrendingSearchesProps {
+  /** 서버에서 초기 렌더링에 쓴 목록 */
   topics: TrendingTopic[]
+  /** 이 목록이 서버에서 마지막으로 새로 조회된 시각 (ISO 문자열) */
+  fetchedAt: string
 }
 
-function formatUpdatedAt(pubDate: string): string | null {
-  if (!pubDate) return null
-  const date = new Date(pubDate)
+function formatUpdatedAt(isoDate: string): string | null {
+  const date = new Date(isoDate)
   if (Number.isNaN(date.getTime())) return null
 
   return new Intl.DateTimeFormat('ko-KR', {
+    timeZone: 'Asia/Seoul',
     month: 'long',
     day: 'numeric',
     hour: '2-digit',
@@ -18,8 +28,44 @@ function formatUpdatedAt(pubDate: string): string | null {
   }).format(date)
 }
 
-export function TrendingSearches({ topics }: TrendingSearchesProps) {
-  const updatedAt = formatUpdatedAt(topics[0]?.pubDate ?? '')
+export function TrendingSearches({
+  topics: initialTopics,
+  fetchedAt: initialFetchedAt,
+}: TrendingSearchesProps) {
+  const [topics, setTopics] = useState(initialTopics)
+  const [fetchedAt, setFetchedAt] = useState(initialFetchedAt)
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function refresh() {
+      if (document.hidden) return
+
+      try {
+        const response = await fetch('/api/trending', { cache: 'no-store' })
+        if (!response.ok) return
+
+        const data: { topics: TrendingTopic[]; fetchedAt: string } = await response.json()
+        if (!cancelled) {
+          setTopics(data.topics)
+          setFetchedAt(data.fetchedAt)
+        }
+      } catch {
+        // 다음 주기에 다시 시도한다
+      }
+    }
+
+    const intervalId = setInterval(refresh, POLL_INTERVAL_MS)
+    document.addEventListener('visibilitychange', refresh)
+
+    return () => {
+      cancelled = true
+      clearInterval(intervalId)
+      document.removeEventListener('visibilitychange', refresh)
+    }
+  }, [])
+
+  const updatedAt = formatUpdatedAt(fetchedAt)
 
   return (
     <section className="overflow-hidden rounded-xl border border-border/70 bg-card">
@@ -29,7 +75,9 @@ export function TrendingSearches({ topics }: TrendingSearchesProps) {
           <h2 className="text-[15px] font-bold tracking-tight">지금 뜨는 검색어</h2>
         </div>
         {updatedAt && (
-          <time className="tabular text-[12px] text-muted-foreground">{updatedAt} 기준</time>
+          <time className="tabular text-[12px] text-muted-foreground" dateTime={fetchedAt}>
+            {updatedAt} 업데이트
+          </time>
         )}
       </header>
 
