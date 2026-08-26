@@ -13,6 +13,7 @@ import { RelatedNews } from '@/features/keyword-detail/ui/related-news'
 import { getKeywordTrend } from '@/shared/api/naver-datalab'
 import { SITE } from '@/shared/config/site'
 import { AdSlot } from '@/shared/ui/ad-slot'
+import { TrendingSearches } from '@/widgets/trending-searches/ui/trending-searches'
 
 interface KeywordPageProps {
   params: Promise<{ keyword: string }>
@@ -62,6 +63,10 @@ export default async function KeywordPage({ params }: KeywordPageProps) {
   // 서버에서 캐시와 함께 조회한다. 키가 없거나 호출이 실패하면 null이고 차트는 생략된다.
   const trend = await getKeywordTrend(topic.title)
 
+  // 같은 요청 내 fetch라 Next.js가 getTrendingTopicByKeyword의 조회와 중복 호출을 합쳐준다.
+  const topics = await getTrendingTopics()
+  const fetchedAt = new Date().toISOString()
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
       <Link
@@ -109,6 +114,7 @@ export default async function KeywordPage({ params }: KeywordPageProps) {
         </div>
 
         <div className="space-y-6 lg:sticky lg:top-20">
+          <TrendingSearches topics={topics} fetchedAt={fetchedAt} compact />
           <AdSlot format="rectangle" debug />
         </div>
       </div>
