@@ -7,9 +7,10 @@ import { TrendingRank } from './trending-rank'
 
 interface TrendingListItemProps {
   topic: TrendingTopic
+  showThumbnail?: boolean
 }
 
-export function TrendingListItem({ topic }: TrendingListItemProps) {
+export function TrendingListItem({ topic, showThumbnail = true }: TrendingListItemProps) {
   const headline = topic.news[0]
 
   return (
@@ -42,7 +43,7 @@ export function TrendingListItem({ topic }: TrendingListItemProps) {
           )}
         </div>
 
-        {topic.picture && (
+        {showThumbnail && topic.picture && (
           <div className="relative hidden h-12 w-16 shrink-0 overflow-hidden rounded-md bg-muted sm:block">
             <Image
               src={topic.picture}

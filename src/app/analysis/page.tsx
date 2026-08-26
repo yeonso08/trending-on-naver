@@ -1,7 +1,9 @@
 import type { Metadata } from 'next'
 
+import { getTrendingTopics } from '@/entities/trending/api/get-trending-topics'
 import { SITE } from '@/shared/config/site'
 import { AdSlot } from '@/shared/ui/ad-slot'
+import { TrendingSearches } from '@/widgets/trending-searches/ui/trending-searches'
 import { TrendsDashboard } from '@/widgets/trends-dashboard/ui/TrendsDashboard'
 
 export const metadata: Metadata = {
@@ -11,7 +13,10 @@ export const metadata: Metadata = {
   alternates: { canonical: '/analysis' },
 }
 
-export default function AnalysisPage() {
+export default async function AnalysisPage() {
+  const topics = await getTrendingTopics()
+  const fetchedAt = new Date().toISOString()
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
       <header className="max-w-2xl">
@@ -28,7 +33,8 @@ export default function AnalysisPage() {
 
       <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start">
         <TrendsDashboard />
-        <div className="lg:sticky lg:top-20">
+        <div className="space-y-6 lg:sticky lg:top-20">
+          <TrendingSearches topics={topics} fetchedAt={fetchedAt} compact />
           <AdSlot format="rectangle" debug />
         </div>
       </div>
