@@ -79,27 +79,29 @@ export default async function KeywordPage({ params }: KeywordPageProps) {
 
       <div className="mt-5 grid gap-8 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start">
         <div className="space-y-8">
-          <header>
-            <div className="flex items-center gap-2">
-              <span className="rounded-md bg-heat-soft px-2 py-0.5 text-[12px] font-bold text-heat ring-1 ring-inset ring-heat-border">
-                {topic.rank}위
-              </span>
-              {topic.approxTraffic && (
-                <span className="tabular text-[12px] text-muted-foreground">
-                  검색량 {topic.approxTraffic}
+          <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="rounded-md bg-heat-soft px-2 py-0.5 text-[12px] font-bold text-heat ring-1 ring-inset ring-heat-border">
+                  {topic.rank}위
                 </span>
-              )}
-            </div>
+                {topic.approxTraffic && (
+                  <span className="tabular text-[12px] text-muted-foreground">
+                    검색량 {topic.approxTraffic}
+                  </span>
+                )}
+              </div>
 
-            <h1 className="mt-3 text-balance text-[32px] font-extrabold leading-tight tracking-tight sm:text-4xl">
-              {topic.title}
-            </h1>
+              <h1 className="mt-3 text-balance text-[32px] font-extrabold leading-tight tracking-tight sm:text-4xl">
+                {topic.title}
+              </h1>
+            </div>
 
             <a
               href={buildNaverSearchUrl(topic.title)}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-5 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-[13px] font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+              className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-[13px] font-semibold text-primary-foreground transition-opacity hover:opacity-90"
             >
               <Search className="h-3.5 w-3.5" />
               네이버에서 검색
