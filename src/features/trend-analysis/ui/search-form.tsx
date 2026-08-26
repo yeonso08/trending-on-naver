@@ -196,26 +196,26 @@ export function SearchForm({ onSearch, loading = false, presetKeyword }: SearchF
         onSubmit={form.handleSubmit(handleSubmit)}
         className="rounded-xl border border-border/70 bg-card"
       >
-        {/* 질문 — 이 페이지에서 가장 큰 입력이자 유일한 필수 항목 */}
-        <div className="border-b border-border/70 p-4 sm:p-5">
+        {/* 질문 — 이 페이지에서 가장 큰 입력이자 유일한 필수 항목.
+            아래 섹션 구분선이 이미 경계를 그어 주므로 입력란에 밑줄을 따로 두지 않는다. */}
+        <div className="border-b border-border/70 px-4 py-3 sm:px-5">
           <FormField
             control={form.control}
             name="keywords"
             render={({ field }) => (
-              <FormItem className="space-y-2">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                  {/* 밑줄 하나로 입력란임을 알리고, 포커스가 오면 강조색으로 살린다 */}
-                  <div className="flex flex-1 items-center gap-2.5 border-b border-border pb-2 transition-colors focus-within:border-heat">
-                    <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+              <FormItem className="space-y-1.5">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                  <div className="group flex flex-1 items-center gap-2.5">
+                    <Search className="h-4 w-4 shrink-0 text-muted-foreground transition-colors group-focus-within:text-heat" />
                     <FormControl>
                       <Input
                         placeholder="검색어 입력 (쉼표로 구분하면 함께 묶어 봅니다)"
-                        className="h-8 border-0 bg-transparent px-0 text-[17px] font-medium shadow-none focus-visible:ring-0 sm:text-lg"
+                        className="h-9 border-0 bg-transparent px-0 text-[16px] font-medium shadow-none focus-visible:ring-0"
                         {...field}
                       />
                     </FormControl>
                   </div>
-                  <Button type="submit" disabled={loading} className="h-10 shrink-0 px-5">
+                  <Button type="submit" disabled={loading} className="h-9 shrink-0 px-4">
                     관심도 보기
                   </Button>
                 </div>
