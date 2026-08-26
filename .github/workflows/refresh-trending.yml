@@ -1,0 +1,16 @@
+name: Refresh trending cache
+
+# Vercel Hobby 플랜은 Cron Job이 하루 1회로 제한된다.
+# 대신 GitHub Actions(퍼블릭 레포는 무료)로 홈페이지를 주기적으로 방문해
+# ISR(stale-while-revalidate) 캐시가 트래픽 없이도 계속 갱신되게 한다.
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 홈페이지 요청으로 ISR 갱신 트리거
+        run: curl -sf -o /dev/null https://trending-on-naver.vercel.app/
