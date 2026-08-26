@@ -64,6 +64,7 @@ NAVER_CLIENT_SECRET=
    ```
 
    `pnpm audit`으로 필요한 최소 버전을 확인하고 올리면 됩니다.
+
 3. **배포 로그는 CLI로 봅니다.** GitHub 체크에는 성공/실패만 나옵니다.
 
    ```bash
@@ -83,6 +84,7 @@ src/
     /about /privacy /terms   정적 문서 (AdSense 심사에 필요)
     sitemap.ts robots.ts     SEO
     api/trends           네이버 데이터랩 프록시 (POST)
+    api/trending         실시간 검색어 JSON (GET) — 열린 탭 폴링용
   widgets/    페이지 단위 조합 (site-header, site-footer, trends-dashboard, trending-searches)
   features/   기능 단위 (trend-analysis, trending-list, keyword-detail)
   entities/   도메인 모델 + 데이터 조회 (trending)
@@ -102,6 +104,16 @@ src/
 - RSS는 제목·시각 외에 **검색량(`ht:approx_traffic`), 썸네일, 관련 뉴스 목록**까지 준다. 상세 페이지 콘텐츠가 전부 여기서 나온다.
 - **트렌드 분석**: `TrendsDashboard`(클라이언트) → `POST /api/trends` → 서버에서 네이버 API 호출. 클라이언트에 API 키가 노출되지 않도록 반드시 라우트 핸들러 경유.
 
+#### 실시간 검색어를 실제로 최신으로 유지하는 두 축
+
+ISR의 `revalidate: 60`은 "60초마다 자동 갱신"이 아니라 **stale-while-revalidate**입니다. 60초가 지난 뒤 _누군가 요청해야_ 백그라운드 재생성이 시작되고, 그 요청자에게는 여전히 옛 캐시가 나갑니다. 주간 방문자 30명 규모에서는 아무도 안 들어와 캐시가 수십 분씩 정체됩니다(실측 `age: 2333` / `x-vercel-cache: STALE`). 그래서 두 가지를 함께 씁니다.
+
+1. **`.github/workflows/refresh-trending.yml`** — 10분마다 홈페이지에 `curl`을 보내 ISR 재생성을 트리거합니다. 방문자가 없어도 캐시가 최신을 유지합니다. **Vercel Hobby 플랜은 자체 Cron이 하루 1회로 제한**되어 못 쓰기 때문에 퍼블릭 레포의 무료 GitHub Actions로 대신합니다.
+2. **`TrendingSearches`의 60초 클라이언트 폴링** — 이미 열어 둔 탭이 새로고침 없이 갱신됩니다. `GET /api/trending`을 호출하며, 그 안의 fetch는 같은 `revalidate: 60` 캐시를 타므로 폴링이 늘어도 구글 RSS 호출 빈도는 늘지 않습니다. 탭이 백그라운드면(`document.hidden`) 건너뛰고, 다시 보이면 즉시 한 번 갱신합니다.
+
+- 화면의 "○○ 업데이트"는 **서버가 데이터를 실제로 가져온 시각(`fetchedAt`)**입니다. RSS의 `pubDate`(그 검색어가 트렌드에 오른 시각)가 아닙니다 — 예전에 그걸 쓰다가 갱신 시점과 어긋나 보였습니다.
+- `TrendingSearches`는 `compact` prop이 있습니다. 300px 사이드바(`/analysis`, `/keyword/[keyword]`)에서는 켜서 썸네일과 인피드 광고를 뺍니다.
+
 ## 코드 스타일
 
 `.prettierrc` 기준 — 세미콜론 없음, 홑따옴표, 2칸 들여쓰기, printWidth 100, trailingComma es5.
@@ -112,13 +124,14 @@ src/
 
 ## 알려진 이슈 / 주의사항
 
-1. **파일명 컨벤션 혼재** — kebab-case와 PascalCase가 섞여 있습니다(`TrendChart.tsx`, `SearchForm.tsx`, `TrendsDashboard.tsx`). 새 파일은 kebab-case로 통일합니다.
-2. **`/keyword/[keyword]`는 현재 순위권 검색어만 렌더합니다.** 순위에서 내려가면 not-found 화면이 나옵니다. 축적된 SEO 자산을 지키려면 검색어 이력을 저장할 DB가 필요합니다 — 지금은 영속 계층이 없습니다.
-3. **순위 밖 검색어는 soft 404입니다.** `notFound()`를 호출하지만 ISR 캐시를 거치면서 HTTP 상태가 200으로 나갑니다(Next.js의 알려진 동작). `generateMetadata`가 `noindex, nofollow`를 붙이므로 색인되지는 않습니다. `dynamicParams = false`로 바꾸면 진짜 404가 되지만, 그러면 빌드 이후 새로 뜬 검색어가 전부 404가 되므로 쓰면 안 됩니다.
-4. **`AdSlot`은 아직 자리표시자입니다.** `debug` prop을 켜 둔 상태라 점선 박스가 보입니다. 실제 광고를 넣을 때 `shared/ui/ad-slot.tsx` 내부만 교체하면 되고, 지면 크기를 미리 잡아 두었으므로 레이아웃은 건드리지 않아도 됩니다.
-5. **`about/page.tsx`의 `CONTACT_EMAIL`이 placeholder입니다.** AdSense 심사는 연락 수단을 확인하므로 공개용 주소로 교체해야 합니다.
-6. **`.next` 캐시가 소스 변경을 반영하지 못하는 경우가 있습니다.** 화면이 예전 그대로면 `rm -rf .next` 후 다시 빌드하세요.
-7. **`generateStaticParams`에는 인코딩하지 않은 원본 문자열을 넘겨야 합니다.** Next.js가 URL 인코딩을 담당하므로 `encodeURIComponent`한 값을 넘기면 이중 인코딩됩니다. 렌더 시점에 `decodeURIComponent`를 한 번 해도 `%EA%B0%84...`가 남아 검색어 매칭에 실패하고, 한글 검색어 페이지가 전부 not-found로 프리렌더됩니다. 라틴 문자 검색어(`mlb`)만 멀쩡해서 눈치채기 어렵습니다. `TrendingTopic.slug`는 **링크·사이트맵 전용**입니다.
+1. **파일명은 kebab-case입니다.** 대부분 정리됐습니다(`trend-chart.tsx`, `search-form.tsx`, `trends-dashboard.tsx`). 남은 PascalCase가 보이면 손대는 김에 함께 바꾸세요.
+2. **날짜·시각을 화면에 찍을 때는 `timeZone: 'Asia/Seoul'`을 반드시 명시하세요.** 서버(Vercel 서버리스)는 UTC로 돌기 때문에 타임존 없이 `Intl.DateTimeFormat`을 쓰면 9시간 어긋난 시각이 나갑니다. 로컬(KST)에서는 멀쩡해 보여서 발견이 어렵습니다.
+3. **`/keyword/[keyword]`는 현재 순위권 검색어만 렌더합니다.** 순위에서 내려가면 not-found 화면이 나옵니다. 축적된 SEO 자산을 지키려면 검색어 이력을 저장할 DB가 필요합니다 — 지금은 영속 계층이 없습니다.
+4. **순위 밖 검색어는 soft 404입니다.** `notFound()`를 호출하지만 ISR 캐시를 거치면서 HTTP 상태가 200으로 나갑니다(Next.js의 알려진 동작). `generateMetadata`가 `noindex, nofollow`를 붙이므로 색인되지는 않습니다. `dynamicParams = false`로 바꾸면 진짜 404가 되지만, 그러면 빌드 이후 새로 뜬 검색어가 전부 404가 되므로 쓰면 안 됩니다.
+5. **`AdSlot`은 아직 자리표시자입니다.** `debug` prop을 켜 둔 상태라 점선 박스가 보입니다. 실제 광고를 넣을 때 `shared/ui/ad-slot.tsx` 내부만 교체하면 되고, 지면 크기를 미리 잡아 두었으므로 레이아웃은 건드리지 않아도 됩니다.
+6. **`about/page.tsx`의 `CONTACT_EMAIL`이 placeholder입니다.** AdSense 심사는 연락 수단을 확인하므로 공개용 주소로 교체해야 합니다.
+7. **`.next` 캐시가 소스 변경을 반영하지 못하는 경우가 있습니다.** 화면이 예전 그대로면 `rm -rf .next` 후 다시 빌드하세요.
+8. **`generateStaticParams`에는 인코딩하지 않은 원본 문자열을 넘겨야 합니다.** Next.js가 URL 인코딩을 담당하므로 `encodeURIComponent`한 값을 넘기면 이중 인코딩됩니다. 렌더 시점에 `decodeURIComponent`를 한 번 해도 `%EA%B0%84...`가 남아 검색어 매칭에 실패하고, 한글 검색어 페이지가 전부 not-found로 프리렌더됩니다. 라틴 문자 검색어(`mlb`)만 멀쩡해서 눈치채기 어렵습니다. `TrendingTopic.slug`는 **링크·사이트맵 전용**입니다.
 
 ## 폰트
 
@@ -144,10 +157,10 @@ src/
 
 공식 문서: https://api.ncloud-docs.com/docs/naver-api-hub-search-trend
 
-| | 구 방식 | NAVER API HUB |
-|---|---|---|
-| URL | `POST https://openapi.naver.com/v1/datalab/search` | `POST https://naverapihub.apigw.ntruss.com/search-trend/v1/search` |
-| 인증 헤더 | `X-Naver-Client-Id` / `X-Naver-Client-Secret` | `X-NCP-APIGW-API-KEY-ID` / `X-NCP-APIGW-API-KEY` |
+|           | 구 방식                                            | NAVER API HUB                                                      |
+| --------- | -------------------------------------------------- | ------------------------------------------------------------------ |
+| URL       | `POST https://openapi.naver.com/v1/datalab/search` | `POST https://naverapihub.apigw.ntruss.com/search-trend/v1/search` |
+| 인증 헤더 | `X-Naver-Client-Id` / `X-Naver-Client-Secret`      | `X-NCP-APIGW-API-KEY-ID` / `X-NCP-APIGW-API-KEY`                   |
 
 **요청·응답 바디는 두 방식이 완전히 같습니다.** 그래서 `shared/api/naver-datalab.ts`가 엔드포인트와 헤더만 갈아끼우는 식으로 양쪽을 모두 지원합니다. API HUB 키(`NAVER_API_HUB_KEY_ID`)가 있으면 그쪽을 먼저 쓰고, 없으면 구 방식으로 넘어갑니다. 이관이 끝나면 구 방식 분기를 지우면 됩니다.
 

@@ -13,6 +13,8 @@ interface TrendingSearchesProps {
   topics: TrendingTopic[]
   /** 이 목록이 서버에서 마지막으로 새로 조회된 시각 (ISO 문자열) */
   fetchedAt: string
+  /** 사이드바처럼 좁은 폭에 넣을 때: 썸네일과 인피드 광고를 뺀다 */
+  compact?: boolean
 }
 
 function formatUpdatedAt(isoDate: string): string | null {
@@ -31,6 +33,7 @@ function formatUpdatedAt(isoDate: string): string | null {
 export function TrendingSearches({
   topics: initialTopics,
   fetchedAt: initialFetchedAt,
+  compact = false,
 }: TrendingSearchesProps) {
   const [topics, setTopics] = useState(initialTopics)
   const [fetchedAt, setFetchedAt] = useState(initialFetchedAt)
@@ -69,7 +72,7 @@ export function TrendingSearches({
 
   return (
     <section className="overflow-hidden rounded-xl border border-border/70 bg-card">
-      <header className="flex items-center justify-between gap-3 border-b border-border/70 px-4 py-3.5 sm:px-5">
+      <header className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-border/70 px-4 py-3.5 sm:px-5">
         <div className="flex items-center gap-2.5">
           <span className="live-dot" />
           <h2 className="text-[15px] font-bold tracking-tight">지금 뜨는 검색어</h2>
@@ -82,7 +85,7 @@ export function TrendingSearches({
       </header>
 
       <div className="py-1">
-        <TrendingList topics={topics} />
+        <TrendingList topics={topics} showThumbnail={!compact} adAfterRank={compact ? -1 : 5} />
       </div>
 
       {/* Google 데이터를 재사용할 때는 출처를 밝히도록 안내하고 있다 */}
