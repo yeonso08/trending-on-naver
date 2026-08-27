@@ -8,25 +8,40 @@
  * 좌표계는 64×64. 지평선 위로 떠오른 반단면이다 — 키위 단면이면서 부채꼴 차트로 읽힌다.
  * 과육 · 부챗살 · 씨앗이 톤을 달리하는 세 겹 구조이고, 이 톤 차이가 이 심볼의 인상을
  * 만든다. 두 가지 색으로 줄여 네거티브로 파내 본 적이 있는데 훨씬 딱딱해져서 되돌렸다.
+ * 선을 굵게 하거나 층을 줄이지 말 것.
+ *
+ * 배경 타일(둥근 초록 사각형)은 걷어냈다. 심볼만 배경 위에 얹는다.
  */
 
-/** 배경에 따라 골라 쓰는 두 벌. 구조는 같고 톤만 뒤집는다 */
-export const KEYWI_PALETTES = {
-  /** 밝은 배경 위에 심볼만 놓을 때 */
-  onLight: {
-    flesh: '#EAF3D9',
-    striation: 'rgba(106, 163, 41, 0.42)',
-    ink: '#6AA329',
-  },
-  /** 브랜드 그린 타일 안에 놓을 때 — 아이콘·파비콘·헤더가 이쪽이다 */
-  onTile: {
-    flesh: 'rgba(255, 255, 255, 0.28)',
-    striation: 'rgba(255, 255, 255, 0.55)',
-    ink: '#FFFFFF',
-  },
+/**
+ * 타일이 없으므로 심볼이 배경 위에서 직접 버텨야 한다.
+ * 화면에서는 CSS 토큰을 써서 다크 모드를 따라가고, 정적 자산은 아래 리터럴을 쓴다.
+ */
+export const KEYWI_TOKENS = {
+  flesh: 'hsl(var(--brand-flesh))',
+  striation: 'hsl(var(--brand) / 0.42)',
+  ink: 'hsl(var(--brand))',
 } as const
 
-export const KEYWI_TILE = '#6AA329'
+/** 정적 SVG·PNG용 리터럴. 화면 토큰의 라이트 모드 값과 같다 */
+export const KEYWI_STATIC = {
+  flesh: '#EAF3D9',
+  striation: 'rgba(106, 163, 41, 0.42)',
+  ink: '#6AA329',
+} as const
+
+/** 다크 배경에 얹는 정적 자산용 */
+export const KEYWI_STATIC_DARK = {
+  flesh: '#33421F',
+  striation: 'rgba(139, 199, 74, 0.42)',
+  ink: '#8BC74A',
+} as const
+
+/**
+ * 타일을 걷어내면 심볼이 사각형 안에서 작아 보인다.
+ * 여백을 줄인 뷰박스로 시각적 크기를 되찾는다.
+ */
+export const KEYWI_VIEWBOX = '4 3 56 56'
 
 /** 지평선의 y좌표. 반원은 이 선 위에 얹힌다 */
 export const KEYWI_HORIZON = 42

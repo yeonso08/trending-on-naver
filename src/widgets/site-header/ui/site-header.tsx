@@ -26,7 +26,7 @@ export function SiteHeader() {
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="flex h-14 items-center gap-6">
           <Link href="/" className="flex shrink-0 items-center gap-2.5">
-            <KeywiMark className="h-7 w-7" />
+            <KeywiMark className="h-8 w-8" />
             <span className="text-[15px] font-bold tracking-tight">{SITE.name}</span>
           </Link>
 

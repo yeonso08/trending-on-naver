@@ -1,18 +1,17 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 232 64" width="232" height="64" role="img" aria-label="Keywi">
-  <rect width="64" height="64" rx="15" fill="#6AA329"/>
-  <path d="M8 42 A24 24 0 0 1 56 42 Z" fill="rgba(255, 255, 255, 0.28)"/>
-  <line x1="32" y1="33" x2="32" y2="21" stroke="rgba(255, 255, 255, 0.55)" stroke-width="1.5" stroke-linecap="round" transform="rotate(-72 32 42)"/>
-  <line x1="32" y1="33" x2="32" y2="21" stroke="rgba(255, 255, 255, 0.55)" stroke-width="1.5" stroke-linecap="round" transform="rotate(-48 32 42)"/>
-  <line x1="32" y1="33" x2="32" y2="21" stroke="rgba(255, 255, 255, 0.55)" stroke-width="1.5" stroke-linecap="round" transform="rotate(-24 32 42)"/>
-  <line x1="32" y1="33" x2="32" y2="21" stroke="rgba(255, 255, 255, 0.55)" stroke-width="1.5" stroke-linecap="round" transform="rotate(0 32 42)"/>
-  <line x1="32" y1="33" x2="32" y2="21" stroke="rgba(255, 255, 255, 0.55)" stroke-width="1.5" stroke-linecap="round" transform="rotate(24 32 42)"/>
-  <line x1="32" y1="33" x2="32" y2="21" stroke="rgba(255, 255, 255, 0.55)" stroke-width="1.5" stroke-linecap="round" transform="rotate(48 32 42)"/>
-  <line x1="32" y1="33" x2="32" y2="21" stroke="rgba(255, 255, 255, 0.55)" stroke-width="1.5" stroke-linecap="round" transform="rotate(72 32 42)"/>
-  <ellipse cx="32" cy="29.5" rx="1.8" ry="2.9" fill="#FFFFFF" transform="rotate(-60 32 42)"/>
-  <ellipse cx="32" cy="29.5" rx="1.8" ry="2.9" fill="#FFFFFF" transform="rotate(-30 32 42)"/>
-  <ellipse cx="32" cy="29.5" rx="1.8" ry="2.9" fill="#FFFFFF" transform="rotate(0 32 42)"/>
-  <ellipse cx="32" cy="29.5" rx="1.8" ry="2.9" fill="#FFFFFF" transform="rotate(30 32 42)"/>
-  <ellipse cx="32" cy="29.5" rx="1.8" ry="2.9" fill="#FFFFFF" transform="rotate(60 32 42)"/>
-  <line x1="6" y1="42" x2="58" y2="42" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round"/>
-  <text x="80" y="42.5" font-family="Pretendard Variable, Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif" font-size="31" font-weight="700" letter-spacing="-1.1" fill="#171312">Keywi</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="4 3 220 56" width="220" height="56" role="img" aria-label="Keywi">
+  <path d="M8 42 A24 24 0 0 1 56 42 Z" fill="#EAF3D9"/>
+  <line x1="32" y1="33" x2="32" y2="21" stroke="rgba(106, 163, 41, 0.42)" stroke-width="1.5" stroke-linecap="round" transform="rotate(-72 32 42)"/>
+  <line x1="32" y1="33" x2="32" y2="21" stroke="rgba(106, 163, 41, 0.42)" stroke-width="1.5" stroke-linecap="round" transform="rotate(-48 32 42)"/>
+  <line x1="32" y1="33" x2="32" y2="21" stroke="rgba(106, 163, 41, 0.42)" stroke-width="1.5" stroke-linecap="round" transform="rotate(-24 32 42)"/>
+  <line x1="32" y1="33" x2="32" y2="21" stroke="rgba(106, 163, 41, 0.42)" stroke-width="1.5" stroke-linecap="round" transform="rotate(0 32 42)"/>
+  <line x1="32" y1="33" x2="32" y2="21" stroke="rgba(106, 163, 41, 0.42)" stroke-width="1.5" stroke-linecap="round" transform="rotate(24 32 42)"/>
+  <line x1="32" y1="33" x2="32" y2="21" stroke="rgba(106, 163, 41, 0.42)" stroke-width="1.5" stroke-linecap="round" transform="rotate(48 32 42)"/>
+  <line x1="32" y1="33" x2="32" y2="21" stroke="rgba(106, 163, 41, 0.42)" stroke-width="1.5" stroke-linecap="round" transform="rotate(72 32 42)"/>
+  <ellipse cx="32" cy="29.5" rx="1.8" ry="2.9" fill="#6AA329" transform="rotate(-60 32 42)"/>
+  <ellipse cx="32" cy="29.5" rx="1.8" ry="2.9" fill="#6AA329" transform="rotate(-30 32 42)"/>
+  <ellipse cx="32" cy="29.5" rx="1.8" ry="2.9" fill="#6AA329" transform="rotate(0 32 42)"/>
+  <ellipse cx="32" cy="29.5" rx="1.8" ry="2.9" fill="#6AA329" transform="rotate(30 32 42)"/>
+  <ellipse cx="32" cy="29.5" rx="1.8" ry="2.9" fill="#6AA329" transform="rotate(60 32 42)"/>
+  <line x1="6" y1="42" x2="58" y2="42" stroke="#6AA329" stroke-width="2.6" stroke-linecap="round"/>
+  <text x="72" y="42.5" font-family="Pretendard Variable, Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif" font-size="31" font-weight="700" letter-spacing="-1.1" fill="#171312">Keywi</text>
 </svg>

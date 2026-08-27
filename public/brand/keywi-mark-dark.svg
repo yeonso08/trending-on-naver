@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="4 3 56 56" width="64" height="64" role="img" aria-label="Keywi">
+  <path d="M8 42 A24 24 0 0 1 56 42 Z" fill="#33421F"/>
+  <line x1="32" y1="33" x2="32" y2="21" stroke="rgba(139, 199, 74, 0.42)" stroke-width="1.5" stroke-linecap="round" transform="rotate(-72 32 42)"/>
+  <line x1="32" y1="33" x2="32" y2="21" stroke="rgba(139, 199, 74, 0.42)" stroke-width="1.5" stroke-linecap="round" transform="rotate(-48 32 42)"/>
+  <line x1="32" y1="33" x2="32" y2="21" stroke="rgba(139, 199, 74, 0.42)" stroke-width="1.5" stroke-linecap="round" transform="rotate(-24 32 42)"/>
+  <line x1="32" y1="33" x2="32" y2="21" stroke="rgba(139, 199, 74, 0.42)" stroke-width="1.5" stroke-linecap="round" transform="rotate(0 32 42)"/>
+  <line x1="32" y1="33" x2="32" y2="21" stroke="rgba(139, 199, 74, 0.42)" stroke-width="1.5" stroke-linecap="round" transform="rotate(24 32 42)"/>
+  <line x1="32" y1="33" x2="32" y2="21" stroke="rgba(139, 199, 74, 0.42)" stroke-width="1.5" stroke-linecap="round" transform="rotate(48 32 42)"/>
+  <line x1="32" y1="33" x2="32" y2="21" stroke="rgba(139, 199, 74, 0.42)" stroke-width="1.5" stroke-linecap="round" transform="rotate(72 32 42)"/>
+  <ellipse cx="32" cy="29.5" rx="1.8" ry="2.9" fill="#8BC74A" transform="rotate(-60 32 42)"/>
+  <ellipse cx="32" cy="29.5" rx="1.8" ry="2.9" fill="#8BC74A" transform="rotate(-30 32 42)"/>
+  <ellipse cx="32" cy="29.5" rx="1.8" ry="2.9" fill="#8BC74A" transform="rotate(0 32 42)"/>
+  <ellipse cx="32" cy="29.5" rx="1.8" ry="2.9" fill="#8BC74A" transform="rotate(30 32 42)"/>
+  <ellipse cx="32" cy="29.5" rx="1.8" ry="2.9" fill="#8BC74A" transform="rotate(60 32 42)"/>
+  <line x1="6" y1="42" x2="58" y2="42" stroke="#8BC74A" stroke-width="2.6" stroke-linecap="round"/>
+</svg>

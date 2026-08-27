@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Keywi">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="4 3 56 56" width="64" height="64" role="img" aria-label="Keywi">
   <path d="M8 42 A24 24 0 0 1 56 42 Z" fill="none"/>
   <line x1="32" y1="33" x2="32" y2="21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" transform="rotate(-72 32 42)"/>
   <line x1="32" y1="33" x2="32" y2="21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" transform="rotate(-48 32 42)"/>
