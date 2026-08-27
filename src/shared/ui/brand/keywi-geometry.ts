@@ -6,36 +6,53 @@
  * 도형을 고치면 함께 다시 만들어야 한다.
  *
  * 좌표계는 64×64. 지평선 위로 떠오른 반단면이다 — 키위 단면이면서 부채꼴 차트로 읽힌다.
- * 색은 브랜드 그린과 흰색 둘뿐이고, 결과 씨앗은 흰 반원에서 파낸 네거티브다.
- * 과육색을 따로 칠하면 곧장 과일 일러스트로 내려앉는다.
+ * 과육 · 부챗살 · 씨앗이 톤을 달리하는 세 겹 구조이고, 이 톤 차이가 이 심볼의 인상을
+ * 만든다. 두 가지 색으로 줄여 네거티브로 파내 본 적이 있는데 훨씬 딱딱해져서 되돌렸다.
  */
-export const KEYWI_COLORS = {
-  green: '#6AA329',
-  light: '#FFFFFF',
+
+/** 배경에 따라 골라 쓰는 두 벌. 구조는 같고 톤만 뒤집는다 */
+export const KEYWI_PALETTES = {
+  /** 밝은 배경 위에 심볼만 놓을 때 */
+  onLight: {
+    flesh: '#EAF3D9',
+    striation: 'rgba(106, 163, 41, 0.42)',
+    ink: '#6AA329',
+  },
+  /** 브랜드 그린 타일 안에 놓을 때 — 아이콘·파비콘·헤더가 이쪽이다 */
+  onTile: {
+    flesh: 'rgba(255, 255, 255, 0.28)',
+    striation: 'rgba(255, 255, 255, 0.55)',
+    ink: '#FFFFFF',
+  },
 } as const
+
+export const KEYWI_TILE = '#6AA329'
 
 /** 지평선의 y좌표. 반원은 이 선 위에 얹힌다 */
 export const KEYWI_HORIZON = 42
-export const KEYWI_RADIUS = 23
+export const KEYWI_RADIUS = 24
 
 /** 반원의 외곽선 — 지평선 왼쪽 끝에서 시계방향으로 그린다 */
 export const KEYWI_DOME = `M${32 - KEYWI_RADIUS} ${KEYWI_HORIZON} A${KEYWI_RADIUS} ${KEYWI_RADIUS} 0 0 1 ${32 + KEYWI_RADIUS} ${KEYWI_HORIZON} Z`
 
 /** 지평선은 반원보다 양옆으로 조금 더 나간다 — 그래야 '수평선'으로 읽힌다 */
-export const KEYWI_BASELINE = { x1: 6, x2: 58, y: KEYWI_HORIZON }
+export const KEYWI_BASELINE = { x1: 6, x2: 58, y: KEYWI_HORIZON, width: 2.6 }
 
-/**
- * 과육의 결. 바깥 띠에만 둔다.
- * 씨앗과 반경이 겹치면 두 층이 뭉개져 하나의 지저분한 햇살로 읽힌다.
- */
-export const KEYWI_STRIATIONS = [-66, -33, 0, 33, 66]
+/** 과육의 결 — 중심에서 바깥으로 뻗는 부챗살 */
+export const KEYWI_STRIATIONS = {
+  angles: [-72, -48, -24, 0, 24, 48, 72],
+  inner: 9,
+  outer: 21,
+  width: 1.5,
+}
 
-/** 씨앗. 결보다 안쪽 띠에, 결 사이사이로 각을 어긋나게 둔다 */
-export const KEYWI_SEEDS = [-49.5, -16.5, 16.5, 49.5]
-
-/** 결이 걸리는 안팎 반경, 씨앗이 앉는 반경 */
-export const KEYWI_STRIATION_BAND = { inner: 12.5, outer: 20.5 }
-export const KEYWI_SEED_RADIUS = 8
+/** 씨앗 — 부챗살과 같은 대역에 겹쳐 앉으면서 결 사이를 채운다 */
+export const KEYWI_SEEDS = {
+  angles: [-60, -30, 0, 30, 60],
+  radius: 12.5,
+  rx: 1.8,
+  ry: 2.9,
+}
 
 /** 부챗살·씨앗을 지평선 중심 기준으로 회전시킨다 */
 export const KEYWI_PIVOT = `32 ${KEYWI_HORIZON}`

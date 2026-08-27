@@ -1,41 +1,54 @@
 import {
   KEYWI_BASELINE,
-  KEYWI_COLORS,
   KEYWI_DOME,
   KEYWI_HORIZON,
+  KEYWI_PALETTES,
   KEYWI_PIVOT,
-  KEYWI_SEED_RADIUS,
   KEYWI_SEEDS,
-  KEYWI_STRIATION_BAND,
   KEYWI_STRIATIONS,
+  KEYWI_TILE,
 } from './keywi-geometry'
 
-export function KeywiMark({ className }: { className?: string }) {
+type Variant = keyof typeof KEYWI_PALETTES
+
+/**
+ * Keywi 심볼.
+ * `onTile`(기본)은 브랜드 그린 타일 안에, `onLight`는 밝은 배경 위에 심볼만 놓는다.
+ */
+export function KeywiMark({
+  className,
+  variant = 'onTile',
+}: {
+  className?: string
+  variant?: Variant
+}) {
+  const palette = KEYWI_PALETTES[variant]
+
   return (
     <svg viewBox="0 0 64 64" className={className} role="img" aria-hidden focusable="false">
-      <rect width="64" height="64" rx="15" fill={KEYWI_COLORS.green} />
-      <path d={KEYWI_DOME} fill={KEYWI_COLORS.light} />
-      {KEYWI_STRIATIONS.map((angle) => (
+      {variant === 'onTile' && <rect width="64" height="64" rx="15" fill={KEYWI_TILE} />}
+      <path d={KEYWI_DOME} fill={palette.flesh} />
+      {KEYWI_STRIATIONS.angles.map((angle) => (
         <line
           key={`s${angle}`}
           x1="32"
-          y1={KEYWI_HORIZON - KEYWI_STRIATION_BAND.inner}
+          y1={KEYWI_HORIZON - KEYWI_STRIATIONS.inner}
           x2="32"
-          y2={KEYWI_HORIZON - KEYWI_STRIATION_BAND.outer}
-          stroke={KEYWI_COLORS.green}
-          strokeWidth="1.7"
+          y2={KEYWI_HORIZON - KEYWI_STRIATIONS.outer}
+          stroke={palette.striation}
+          strokeWidth={KEYWI_STRIATIONS.width}
           strokeLinecap="round"
           transform={`rotate(${angle} ${KEYWI_PIVOT})`}
         />
       ))}
-      {KEYWI_SEEDS.map((angle) => (
+      {KEYWI_SEEDS.angles.map((angle) => (
         <ellipse
           key={`d${angle}`}
           cx="32"
-          cy={KEYWI_HORIZON - KEYWI_SEED_RADIUS}
-          rx="1.4"
-          ry="2.2"
-          fill={KEYWI_COLORS.green}
+          cy={KEYWI_HORIZON - KEYWI_SEEDS.radius}
+          rx={KEYWI_SEEDS.rx}
+          ry={KEYWI_SEEDS.ry}
+          fill={palette.ink}
           transform={`rotate(${angle} ${KEYWI_PIVOT})`}
         />
       ))}
@@ -44,8 +57,8 @@ export function KeywiMark({ className }: { className?: string }) {
         y1={KEYWI_BASELINE.y}
         x2={KEYWI_BASELINE.x2}
         y2={KEYWI_BASELINE.y}
-        stroke={KEYWI_COLORS.light}
-        strokeWidth="3"
+        stroke={palette.ink}
+        strokeWidth={KEYWI_BASELINE.width}
         strokeLinecap="round"
       />
     </svg>
