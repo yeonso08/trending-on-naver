@@ -7,6 +7,10 @@
 
 프로덕션: https://trending-on-naver.vercel.app
 
+**2026-08-28 — 서비스명을 '트렌드나우'에서 '키위(Keywi)'로 바꿨습니다.** 로고·파비콘까지
+적용했고, 도메인 `keywi.kr`은 아직 구매 전이라 `SITE.url`은 `vercel.app`으로 남겨 뒀습니다.
+자세한 배경과 주의사항은 [CLAUDE.md](../CLAUDE.md)의 '브랜드' 항목에 있습니다.
+
 > **2026-08-26 기준 1-10 ~ 1-12 작업은 `dev` 브랜치에 있고 아직 `main`에 병합되지
 > 않았습니다.** [PR #4](https://github.com/yeonso08/trending-on-naver/pull/4)에서 확인하세요.
 > 브랜치는 `main`과 `dev` 둘만 남기고 정리했습니다.

@@ -34,6 +34,10 @@
     --heat-soft: 18 100% 96%;
     --heat-border: 18 90% 88%;
 
+    /* 브랜드 — 로고/아이덴티티 전용. 데이터 표시에는 heat를 쓴다 */
+    --brand: 88 60% 40%;
+    --brand-foreground: 0 0% 100%;
+
     --chart-1: 18 95% 52%;
     --chart-2: 265 70% 58%;
     --chart-3: 190 85% 40%;
@@ -70,6 +74,9 @@
     --heat-foreground: 24 10% 6%;
     --heat-soft: 18 55% 13%;
     --heat-border: 18 50% 22%;
+
+    --brand: 88 55% 52%;
+    --brand-foreground: 24 10% 6%;
 
     --chart-1: 18 95% 58%;
     --chart-2: 265 75% 68%;
