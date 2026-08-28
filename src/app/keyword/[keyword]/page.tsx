@@ -46,10 +46,12 @@ export async function generateMetadata({ params }: KeywordPageProps): Promise<Me
     title: `${keyword} — 실시간 검색어 ${topic.rank}위`,
     description,
     alternates: { canonical: `/keyword/${topic.slug}` },
+    // images를 여기서 지정하면 파일 기반 opengraph-image.tsx를 덮어쓴다.
+    // 구글 RSS의 topic.picture는 gstatic 핫링크에 폭이 수백 px뿐이라
+    // summary_large_image 카드에 맞지 않는다. 우리가 그리는 1200x630 카드를 쓴다.
     openGraph: {
       title: `${keyword} — 실시간 검색어 ${topic.rank}위 | ${SITE.name}`,
       description,
-      images: topic.picture ? [topic.picture] : undefined,
     },
   }
 }
