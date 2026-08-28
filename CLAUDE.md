@@ -29,11 +29,13 @@
 | 서비스 브랜드   | 키위 / Keywi                                    |
 | GitHub 레포     | `trending-on-naver` (안 바꿨음)                 |
 | Vercel 프로젝트 | `trending-on-naver` (안 바꿨음 — CLI 인자로 씀) |
-| 예정 도메인     | `keywi.kr` (+ `keywi.co.kr`) — 아직 구매 전     |
+| 도메인          | **`keywi.kr`** (2026-08-28 연결 완료)           |
 
-- **`SITE.url`은 도메인을 실제로 연결하기 전까지 `vercel.app` 주소로 둡니다.** 먼저 바꾸면
-  `metadataBase`를 타고 canonical·sitemap·OG가 전부 존재하지 않는 주소를 가리켜 색인이 깨집니다.
-  Vercel에 도메인을 붙인 다음 한 줄만 고치면 됩니다.
+- **정식 주소는 apex(`https://keywi.kr`)입니다.** `www.keywi.kr`과 `http://`는 둘 다 308로
+  이쪽에 합쳐집니다. `SITE.url`이 `metadataBase`를 타고 canonical·sitemap·OG를 전부 결정하므로,
+  여기를 www로 적으면 canonical이 리다이렉트되는 주소를 가리켜 색인이 꼬입니다.
+- DNS는 가비아에 두고 A/CNAME만 Vercel로 넘깁니다(네임서버 위임 아님). 가비아 DNS 관리는
+  **CNAME 값 끝에 마침표가 필수**입니다 — 해외 등록기관과 규칙이 반대라 헷갈리기 쉽습니다.
 - 색 규칙: **`--brand`(키위 그린)와 `--brand-flesh`(과육 톤)는 로고·아이덴티티 전용,
   `--heat`(오렌지)는 순위·실시간 등 데이터 표시 전용.** 섞으면 차트에서 브랜드색과
   데이터색이 구분되지 않습니다.
@@ -89,7 +91,7 @@ NAVER_CLIENT_SECRET=
 
 ## 배포 (Vercel)
 
-프로덕션: https://trending-on-naver.vercel.app
+프로덕션: https://keywi.kr
 
 **환경 변수는 Vercel 프로젝트 설정에도 등록해야 합니다.** `.env.local`은 로컬 전용이라, 없으면 배포본에서 차트만 조용히 사라집니다(`/api/trends`가 503).
 

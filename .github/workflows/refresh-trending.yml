@@ -13,4 +13,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 홈페이지 요청으로 ISR 갱신 트리거
-        run: curl -sf -o /dev/null https://trending-on-naver.vercel.app/
+        run: curl -sf -o /dev/null https://keywi.kr/

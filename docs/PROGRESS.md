@@ -5,7 +5,7 @@
 방치돼 있던 개인 프로젝트를 광고 수익을 목표로 하는 서비스로 되살리는 중입니다.
 현재 유입은 주간 방문자 약 30명.
 
-프로덕션: https://trending-on-naver.vercel.app
+프로덕션: https://keywi.kr
 
 > **2026-08-26 기준 1-10 ~ 1-12 작업은 `dev` 브랜치에 있고 아직 `main`에 병합되지
 > 않았습니다.** [PR #4](https://github.com/yeonso08/trending-on-naver/pull/4)에서 확인하세요.
