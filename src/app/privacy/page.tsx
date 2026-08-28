@@ -14,7 +14,7 @@ export default function PrivacyPage() {
     <Prose>
       <h1>개인정보처리방침</h1>
       <p>
-        {SITE.name}(이하 &lsquo;서비스&rsquo;)은 이용자의 개인정보를 소중히 여기며, 아래와 같이
+        {SITE.name}(이하 &lsquo;서비스&rsquo;)는 이용자의 개인정보를 소중히 여기며, 아래와 같이
         개인정보를 처리합니다.
       </p>
 
