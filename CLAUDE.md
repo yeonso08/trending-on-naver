@@ -52,8 +52,21 @@
   (`keywi-mark.tsx`)와 애플 아이콘(`app/apple-icon.tsx`)이 그걸 함께 읽습니다.
   `public/brand/*.svg`와 `app/icon.svg`는 같은 수치로 뽑아낸 산출물이라 도형을 고치면
   함께 다시 만들어야 합니다.
-- OG 이미지는 아직 없습니다. `ImageResponse`로 만들려면 한글 폰트 파일을 넘겨야 하는데
-  Pretendard가 서브셋 92개로 쪼개져 있어 통짜 파일이 레포에 없습니다.
+- OG 이미지는 `app/opengraph-image.tsx`(홈)와 `app/keyword/[keyword]/opengraph-image.tsx`
+  (검색어별)에서 `ImageResponse`로 그립니다. 공용 설정은 `shared/model/og.ts`.
+
+  ⚠️ **`ImageResponse`(satori)는 woff2를 읽지 못합니다.** 화면용 서브셋 92개가 전부
+  woff2라 여기서는 못 씁니다. OG 전용으로 `public/fonts/pretendard/og/`에 통짜 woff
+  두 벌(Bold·Regular, 각 1.1MB)을 따로 둡니다. 서버에서만 읽히고 브라우저로는 안 나갑니다.
+  폰트를 안 넘기면 한글이 전부 두부(□□□)가 됩니다.
+
+  ⚠️ **`generateMetadata`에서 `openGraph.images`를 지정하면 파일 기반 `opengraph-image`를
+  덮어씁니다.** 예전에 검색어 상세가 구글 RSS의 `topic.picture`를 og:image로 쓰고 있어서
+  우리 카드가 무시됐습니다. 그 썸네일은 gstatic 핫링크에 폭이 수백 px뿐이라
+  `summary_large_image`에 맞지 않습니다. 다시 넣지 마세요.
+
+  검색어별 og:image URL은 `%25EB...` 형태로 이중 인코딩돼 보이는데 정상입니다 —
+  라우터가 한 번, 라우트의 `decodeURIComponent`가 한 번 디코딩합니다.
 
 ## 명령어
 
