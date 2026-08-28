@@ -23,9 +23,12 @@ interface KeywordTrendChartProps {
 export function KeywordTrendChart({ data }: KeywordTrendChartProps) {
   return (
     <section>
-      <h2 className="text-[15px] font-bold tracking-tight">최근 30일 검색 관심도</h2>
+      <div className="flex items-baseline justify-between gap-2">
+        <h2 className="text-[15px] font-bold tracking-tight">최근 30일 검색 관심도</h2>
+        <span className="shrink-0 text-[11px] text-muted-foreground">출처: 네이버 데이터랩</span>
+      </div>
       <p className="mt-1 text-[13px] text-muted-foreground">
-        기간 내 최고 검색량을 100으로 둔 상대값입니다. 출처: 네이버 데이터랩
+        기간 내 최고 검색량을 100으로 둔 상대값입니다.
       </p>
 
       <div className="mt-3 rounded-xl border border-border/70 bg-card p-4">

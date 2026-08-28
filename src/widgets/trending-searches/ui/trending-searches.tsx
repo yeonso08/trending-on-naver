@@ -89,7 +89,7 @@ export function TrendingSearches({
       </div>
 
       {/* Google 데이터를 재사용할 때는 출처를 밝히도록 안내하고 있다 */}
-      <footer className="border-t border-border/70 px-4 py-3 sm:px-5">
+      <footer className="border-t border-border/70 px-4 py-3 text-right sm:px-5">
         <p className="text-[12px] text-muted-foreground">
           출처{' '}
           <a

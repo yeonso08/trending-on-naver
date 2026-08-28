@@ -26,6 +26,10 @@ export default async function AnalysisPage() {
         <p className="mt-3 text-[15px] leading-relaxed text-muted-foreground">
           검색어 하나가 언제 얼마나 관심을 받았는지 그래프로 확인하세요.
         </p>
+        <p className="mt-2 text-[12px] leading-relaxed text-muted-foreground/80">
+          {SITE.name}이 제공하는 수치는 네이버 데이터랩 기준으로, 기간 내 최고 검색량을 100으로 둔
+          상대값이며 실제 검색 횟수의 절댓값이 아닙니다.
+        </p>
       </header>
 
       <div className="mt-8">
@@ -39,11 +43,6 @@ export default async function AnalysisPage() {
           <AdSlot format="rectangle" />
         </div>
       </div>
-
-      <p className="mt-10 text-[12px] leading-relaxed text-muted-foreground">
-        {SITE.name}이 제공하는 수치는 네이버 데이터랩 기준으로, 기간 내 최고 검색량을 100으로 둔
-        상대값이며 실제 검색 횟수의 절댓값이 아닙니다.
-      </p>
     </div>
   )
 }
