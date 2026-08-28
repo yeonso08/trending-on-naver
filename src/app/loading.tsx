@@ -14,7 +14,9 @@ export default function Loading() {
       <div
         className={cn(
           'mt-8',
-          hasRectangleAd ? 'grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]' : 'mx-auto max-w-2xl'
+          hasRectangleAd
+            ? 'grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_300px]'
+            : 'mx-auto max-w-2xl'
         )}
       >
         <Skeleton className="h-[520px] w-full rounded-xl" />

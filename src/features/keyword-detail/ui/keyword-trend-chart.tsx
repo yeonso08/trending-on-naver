@@ -4,6 +4,7 @@ import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts'
 
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import type { ChartConfig } from '@/components/ui/chart'
+import { ratioTooltipFormatter } from '@/shared/ui/chart-tooltip'
 import type { TrendData } from '@/shared/types/trends'
 
 const chartConfig = {
@@ -50,7 +51,10 @@ export function KeywordTrendChart({ data }: KeywordTrendChartProps) {
               tickFormatter={(value: string) => value.slice(5).replace('-', '.')}
             />
             <YAxis width={32} tickLine={false} axisLine={false} domain={[0, 100]} />
-            <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
+            <ChartTooltip
+              cursor={false}
+              content={<ChartTooltipContent indicator="dot" formatter={ratioTooltipFormatter} />}
+            />
             <Area
               dataKey="ratio"
               type="monotone"

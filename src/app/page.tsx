@@ -52,7 +52,7 @@ export default async function Home() {
         className={cn(
           'mt-8',
           hasRectangleAd
-            ? 'grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start'
+            ? 'grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start'
             : 'mx-auto max-w-2xl'
         )}
       >

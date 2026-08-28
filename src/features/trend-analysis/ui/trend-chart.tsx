@@ -5,6 +5,7 @@ import { Area, AreaChart, CartesianGrid, ReferenceDot, XAxis, YAxis } from 'rech
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import type { ChartConfig } from '@/components/ui/chart'
 import { cn } from '@/lib/utils'
+import { ratioTooltipFormatter } from '@/shared/ui/chart-tooltip'
 import type { TrendData } from '@/shared/types/trends'
 
 interface TrendChartProps {
@@ -124,7 +125,10 @@ export function TrendChart({ data, conditionLabel }: TrendChartProps) {
               tickFormatter={shortPeriod}
             />
             <YAxis width={30} tickLine={false} axisLine={false} domain={[0, 100]} />
-            <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
+            <ChartTooltip
+              cursor={false}
+              content={<ChartTooltipContent indicator="dot" formatter={ratioTooltipFormatter} />}
+            />
             <Area
               dataKey="ratio"
               type="monotone"
