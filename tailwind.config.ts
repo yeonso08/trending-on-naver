@@ -51,6 +51,11 @@ export default {
           soft: 'hsl(var(--heat-soft))',
           border: 'hsl(var(--heat-border))',
         },
+        brand: {
+          DEFAULT: 'hsl(var(--brand))',
+          foreground: 'hsl(var(--brand-foreground))',
+          flesh: 'hsl(var(--brand-flesh))',
+        },
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
