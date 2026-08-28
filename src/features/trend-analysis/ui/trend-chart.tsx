@@ -55,7 +55,7 @@ function Stat({
   label: string
   value: string
   sub?: string
-  tone?: 'default' | 'heat' | 'up' | 'down'
+  tone?: 'default' | 'heat'
 }) {
   return (
     <div>
