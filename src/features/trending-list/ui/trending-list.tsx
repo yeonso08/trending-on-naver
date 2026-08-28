@@ -29,7 +29,7 @@ export function TrendingList({ topics, adAfterRank = 5, showThumbnail = true }: 
           <TrendingListItem topic={topic} showThumbnail={showThumbnail} />
           {topic.rank === adAfterRank && (
             <li className="px-3 py-3 sm:px-4">
-              <AdSlot format="in-feed" debug />
+              <AdSlot format="in-feed" />
             </li>
           )}
         </Fragment>

@@ -29,14 +29,14 @@ export default async function AnalysisPage() {
       </header>
 
       <div className="mt-8">
-        <AdSlot format="leaderboard" debug />
+        <AdSlot format="leaderboard" />
       </div>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start">
         <TrendsDashboard starters={topics.slice(0, 6).map((topic) => topic.title)} />
         <div className="space-y-6 lg:sticky lg:top-20">
           <TrendingSearches topics={topics} fetchedAt={fetchedAt} compact />
-          <AdSlot format="rectangle" debug />
+          <AdSlot format="rectangle" />
         </div>
       </div>
 

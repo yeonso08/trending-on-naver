@@ -2,11 +2,13 @@ import type { Metadata } from 'next'
 import './fonts.css'
 import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
+import { ADSENSE_CLIENT, ADSENSE_ENABLED } from '@/shared/config/adsense'
 import { SITE } from '@/shared/config/site'
 import { SiteFooter } from '@/widgets/site-footer/ui/site-footer'
 import { SiteHeader } from '@/widgets/site-header/ui/site-header'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
+import Script from 'next/script'
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE.url),
@@ -49,6 +51,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="ko" suppressHydrationWarning>
       <head>
+        {/* 게시자 ID가 없으면 넣지 않는다. 심사 신청 후 Vercel 환경 변수에 채우면 붙는다 */}
+        {ADSENSE_ENABLED && (
+          <Script
+            async
+            strategy="afterInteractive"
+            crossOrigin="anonymous"
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`}
+          />
+        )}
         {PRELOADED_FONT_SUBSETS.map((index) => (
           <link
             key={index}

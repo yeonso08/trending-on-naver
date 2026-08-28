@@ -1,6 +1,10 @@
 import { cn } from '@/lib/utils'
-
-type AdFormat = 'leaderboard' | 'rectangle' | 'in-feed'
+import {
+  ADSENSE_CLIENT,
+  ADSENSE_ENABLED,
+  ADSENSE_SLOTS,
+  type AdFormat,
+} from '@/shared/config/adsense'
 
 const FORMAT_STYLES: Record<AdFormat, string> = {
   /* 헤더 아래 / 푸터 위 가로 배너 */
@@ -14,33 +18,35 @@ const FORMAT_STYLES: Record<AdFormat, string> = {
 interface AdSlotProps {
   format: AdFormat
   className?: string
-  /** 광고 스크립트를 붙이기 전 지면을 눈으로 확인할 때 사용 */
-  debug?: boolean
 }
 
 /**
- * AdSense 지면 자리표시자.
+ * AdSense 지면.
  *
- * 아직 스크립트를 붙이지 않았지만, 승인 후 광고가 들어올 자리를 미리 확보해
- * 레이아웃 시프트(CLS)가 생기지 않게 한다. 실제 광고를 넣을 때는 이 컴포넌트
- * 내부만 교체하면 되고 페이지 레이아웃은 건드릴 필요가 없다.
+ * 게시자 ID나 해당 지면의 광고 단위 ID가 없으면 **아무것도 렌더하지 않습니다.**
+ * 예전에는 점선 자리표시자를 그렸는데, 그대로 배포되면 미완성으로 보입니다.
+ *
+ * 지면 크기는 미리 잡아 두었으므로 광고가 들어와도 레이아웃 시프트(CLS)가 없습니다.
  */
-export function AdSlot({ format, className, debug = false }: AdSlotProps) {
+export function AdSlot({ format, className }: AdSlotProps) {
+  const slot = ADSENSE_SLOTS[format]
+  if (!ADSENSE_ENABLED || !slot) return null
+
   return (
     <aside
-      aria-hidden="true"
-      className={cn(
-        'w-full overflow-hidden rounded-lg',
-        FORMAT_STYLES[format],
-        debug && 'grid place-items-center border border-dashed border-border bg-muted/40',
-        className
-      )}
+      aria-label="광고"
+      className={cn('w-full overflow-hidden', FORMAT_STYLES[format], className)}
     >
-      {debug && (
-        <span className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
-          AD · {format}
-        </span>
-      )}
+      <ins
+        className="adsbygoogle block w-full"
+        data-ad-client={ADSENSE_CLIENT}
+        data-ad-slot={slot}
+        data-ad-format={format === 'in-feed' ? 'fluid' : 'auto'}
+        data-full-width-responsive="true"
+      />
+      <script
+        dangerouslySetInnerHTML={{ __html: '(adsbygoogle = window.adsbygoogle || []).push({});' }}
+      />
     </aside>
   )
 }

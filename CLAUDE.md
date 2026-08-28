@@ -102,6 +102,16 @@ NAVER_CLIENT_SECRET=
 
 둘 다 없으면 `/api/trends`가 503을 반환하고 차트만 동작하지 않습니다. 실시간 검색어 목록은 키 없이도 동작합니다.
 
+AdSense는 별도입니다. **없어도 사이트는 정상 동작하며 광고 관련 요소가 아예 렌더되지 않습니다.**
+
+```
+NEXT_PUBLIC_ADSENSE_CLIENT=ca-pub-0000000000000000
+```
+
+`ca-pub-`으로 시작하지 않으면 무효로 봅니다. 이 값이 있어야 `<head>`의 AdSense 스크립트와
+`/ads.txt`가 나갑니다. 실제 광고 지면은 `shared/config/adsense.ts`의 `ADSENSE_SLOTS`까지
+채워야 렌더됩니다 — 광고 단위 ID는 승인 후 콘솔에서 만듭니다.
+
 ## 배포 (Vercel)
 
 프로덕션: https://keywi.kr
@@ -182,8 +192,8 @@ ISR의 `revalidate: 60`은 "60초마다 자동 갱신"이 아니라 **stale-whil
 2. **날짜·시각을 화면에 찍을 때는 `timeZone: 'Asia/Seoul'`을 반드시 명시하세요.** 서버(Vercel 서버리스)는 UTC로 돌기 때문에 타임존 없이 `Intl.DateTimeFormat`을 쓰면 9시간 어긋난 시각이 나갑니다. 로컬(KST)에서는 멀쩡해 보여서 발견이 어렵습니다.
 3. **`/keyword/[keyword]`는 현재 순위권 검색어만 렌더합니다.** 순위에서 내려가면 not-found 화면이 나옵니다. 축적된 SEO 자산을 지키려면 검색어 이력을 저장할 DB가 필요합니다 — 지금은 영속 계층이 없습니다.
 4. **순위 밖 검색어는 soft 404입니다.** `notFound()`를 호출하지만 ISR 캐시를 거치면서 HTTP 상태가 200으로 나갑니다(Next.js의 알려진 동작). `generateMetadata`가 `noindex, nofollow`를 붙이므로 색인되지는 않습니다. `dynamicParams = false`로 바꾸면 진짜 404가 되지만, 그러면 빌드 이후 새로 뜬 검색어가 전부 404가 되므로 쓰면 안 됩니다.
-5. **`AdSlot`은 아직 자리표시자입니다.** `debug` prop을 켜 둔 상태라 점선 박스가 보입니다. 실제 광고를 넣을 때 `shared/ui/ad-slot.tsx` 내부만 교체하면 되고, 지면 크기를 미리 잡아 두었으므로 레이아웃은 건드리지 않아도 됩니다.
-6. **`about/page.tsx`의 `CONTACT_EMAIL`이 placeholder입니다.** AdSense 심사는 연락 수단을 확인하므로 공개용 주소로 교체해야 합니다.
+5. **`AdSlot`은 설정이 없으면 아무것도 렌더하지 않습니다.** 예전에는 점선 자리표시자를 그렸는데 그대로 배포되면 미완성으로 보여서 걷어냈습니다. `NEXT_PUBLIC_ADSENSE_CLIENT`와 해당 지면의 `ADSENSE_SLOTS` 값이 **둘 다** 있어야 지면이 나옵니다. 지면 크기는 미리 잡아 두었으므로 광고가 들어와도 레이아웃 시프트가 없습니다.
+6. **`/ads.txt`는 정적 파일이 아니라 라우트입니다.** 게시자 ID에서 만들어 내므로 `public/`에 같은 이름의 파일을 두지 마세요 — 충돌합니다. ID가 없으면 404를 반환합니다.
 7. **`.next` 캐시가 소스 변경을 반영하지 못하는 경우가 있습니다.** 화면이 예전 그대로면 `rm -rf .next` 후 다시 빌드하세요.
 8. **`generateStaticParams`에는 인코딩하지 않은 원본 문자열을 넘겨야 합니다.** Next.js가 URL 인코딩을 담당하므로 `encodeURIComponent`한 값을 넘기면 이중 인코딩됩니다. 렌더 시점에 `decodeURIComponent`를 한 번 해도 `%EA%B0%84...`가 남아 검색어 매칭에 실패하고, 한글 검색어 페이지가 전부 not-found로 프리렌더됩니다. 라틴 문자 검색어(`mlb`)만 멀쩡해서 눈치채기 어렵습니다. `TrendingTopic.slug`는 **링크·사이트맵 전용**입니다.
 

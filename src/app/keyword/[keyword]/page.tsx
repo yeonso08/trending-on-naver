@@ -121,7 +121,7 @@ export default async function KeywordPage({ params }: KeywordPageProps) {
             </a>
           </header>
 
-          <AdSlot format="leaderboard" debug />
+          <AdSlot format="leaderboard" />
 
           {trend && <KeywordTrendChart data={trend} />}
 
@@ -130,7 +130,7 @@ export default async function KeywordPage({ params }: KeywordPageProps) {
 
         <div className="space-y-6 lg:sticky lg:top-20">
           <TrendingSearches topics={topics} fetchedAt={fetchedAt} compact />
-          <AdSlot format="rectangle" debug />
+          <AdSlot format="rectangle" />
         </div>
       </div>
     </div>
