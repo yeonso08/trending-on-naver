@@ -33,6 +33,10 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
+  // 구글은 DNS TXT 레코드로 인증했으므로 태그가 필요 없다. 네이버만 태그로 받는다.
+  verification: {
+    other: { 'naver-site-verification': '2999f272212b1fb92fe6d6b1de48ceb792327c50' },
+  },
 }
 
 /**

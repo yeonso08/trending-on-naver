@@ -12,7 +12,9 @@ import { KeywordTrendChart } from '@/features/keyword-detail/ui/keyword-trend-ch
 import { RelatedNews } from '@/features/keyword-detail/ui/related-news'
 import { getKeywordTrend } from '@/shared/api/naver-datalab'
 import { SITE } from '@/shared/config/site'
+import { buildBreadcrumbSchema, buildGraph } from '@/shared/model/structured-data'
 import { AdSlot } from '@/shared/ui/ad-slot'
+import { JsonLd } from '@/shared/ui/json-ld'
 import { TrendingSearches } from '@/widgets/trending-searches/ui/trending-searches'
 
 interface KeywordPageProps {
@@ -69,6 +71,15 @@ export default async function KeywordPage({ params }: KeywordPageProps) {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
+      <JsonLd
+        data={buildGraph(
+          buildBreadcrumbSchema([
+            { name: '실시간 순위', path: '/' },
+            { name: topic.title, path: `/keyword/${topic.slug}` },
+          ])
+        )}
+      />
+
       <Link
         href="/"
         className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground transition-colors hover:text-foreground"
