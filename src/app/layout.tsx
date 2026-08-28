@@ -8,7 +8,6 @@ import { SiteFooter } from '@/widgets/site-footer/ui/site-footer'
 import { SiteHeader } from '@/widgets/site-header/ui/site-header'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
-import Script from 'next/script'
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE.url),
@@ -51,11 +50,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="ko" suppressHydrationWarning>
       <head>
-        {/* 게시자 ID가 없으면 넣지 않는다. 심사 신청 후 Vercel 환경 변수에 채우면 붙는다 */}
+        {/*
+          게시자 ID가 없으면 넣지 않는다. 심사 신청 후 Vercel 환경 변수에 채우면 붙는다.
+
+          next/script의 afterInteractive를 쓰면 <head>에는 preload 링크만 남고 실제
+          <script>는 하이드레이션 후 JS로 주입된다. 구글은 스니펫을 <head>에 두라고
+          안내하므로, 서버 HTML에 태그가 그대로 찍히도록 평범한 script를 쓴다.
+        */}
         {ADSENSE_ENABLED && (
-          <Script
+          <script
             async
-            strategy="afterInteractive"
             crossOrigin="anonymous"
             src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`}
           />
