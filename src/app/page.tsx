@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 
 import { getTrendingTopics } from '@/entities/trending/api/get-trending-topics'
+import { cn } from '@/lib/utils'
+import { ADSENSE_ENABLED, ADSENSE_SLOTS } from '@/shared/config/adsense'
 import { SITE } from '@/shared/config/site'
 import {
   buildGraph,
@@ -21,6 +23,11 @@ export default async function Home() {
   const topics = await getTrendingTopics()
   const fetchedAt = new Date().toISOString()
 
+  // 광고 단위가 아직 없으면 AdSlot이 아무것도 렌더하지 않는다. 그 상태로 2단 그리드를
+  // 유지하면 사이드바 자리만 텅 빈 채 남아 본문이 가운데서 왼쪽으로 밀려 보인다.
+  const hasLeaderboardAd = ADSENSE_ENABLED && Boolean(ADSENSE_SLOTS.leaderboard)
+  const hasRectangleAd = ADSENSE_ENABLED && Boolean(ADSENSE_SLOTS.rectangle)
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
       <JsonLd data={buildGraph(buildWebSiteSchema(), buildTrendingItemListSchema(topics))} />
@@ -35,16 +42,27 @@ export default async function Home() {
         </p>
       </section>
 
-      <div className="mt-8">
-        <AdSlot format="leaderboard" />
-      </div>
+      {hasLeaderboardAd && (
+        <div className="mt-8">
+          <AdSlot format="leaderboard" />
+        </div>
+      )}
 
-      <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start">
+      <div
+        className={cn(
+          'mt-8',
+          hasRectangleAd
+            ? 'grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start'
+            : 'mx-auto max-w-2xl'
+        )}
+      >
         <TrendingSearches topics={topics} fetchedAt={fetchedAt} />
 
-        <div className="space-y-6 lg:sticky lg:top-20">
-          <AdSlot format="rectangle" />
-        </div>
+        {hasRectangleAd && (
+          <div className="space-y-6 lg:sticky lg:top-20">
+            <AdSlot format="rectangle" />
+          </div>
+        )}
       </div>
     </div>
   )

@@ -7,7 +7,7 @@ const CONTACT_EMAIL = 'nukko.team@gmail.com'
 
 export const metadata: Metadata = {
   title: '서비스 소개',
-  description: `${SITE.name}이 어떤 데이터를 어디서 가져와 어떻게 보여주는지 설명합니다.`,
+  description: `${SITE.name}가 어떤 데이터를 어디서 가져와 어떻게 보여주는지 설명합니다.`,
   alternates: { canonical: '/about' },
 }
 
@@ -16,7 +16,7 @@ export default function AboutPage() {
     <Prose>
       <h1>서비스 소개</h1>
       <p>
-        {SITE.name}은 지금 대한민국에서 사람들이 무엇을 검색하고 있는지, 그리고 특정 검색어의
+        {SITE.name}는 지금 대한민국에서 사람들이 무엇을 검색하고 있는지, 그리고 특정 검색어의
         관심도가 시간에 따라 어떻게 변했는지를 한 곳에서 보여주는 서비스입니다.
       </p>
 

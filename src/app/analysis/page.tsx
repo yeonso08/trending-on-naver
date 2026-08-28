@@ -26,24 +26,23 @@ export default async function AnalysisPage() {
         <p className="mt-3 text-[15px] leading-relaxed text-muted-foreground">
           검색어 하나가 언제 얼마나 관심을 받았는지 그래프로 확인하세요.
         </p>
+        <p className="mt-2 text-[12px] leading-relaxed text-muted-foreground/80">
+          {SITE.name}가 제공하는 수치는 네이버 데이터랩 기준으로, 기간 내 최고 검색량을 100으로 둔
+          상대값이며 실제 검색 횟수의 절댓값이 아닙니다.
+        </p>
       </header>
 
       <div className="mt-8">
         <AdSlot format="leaderboard" />
       </div>
 
-      <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start">
+      <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start">
         <TrendsDashboard starters={topics.slice(0, 6).map((topic) => topic.title)} />
         <div className="space-y-6 lg:sticky lg:top-20">
           <TrendingSearches topics={topics} fetchedAt={fetchedAt} compact />
           <AdSlot format="rectangle" />
         </div>
       </div>
-
-      <p className="mt-10 text-[12px] leading-relaxed text-muted-foreground">
-        {SITE.name}이 제공하는 수치는 네이버 데이터랩 기준으로, 기간 내 최고 검색량을 100으로 둔
-        상대값이며 실제 검색 횟수의 절댓값이 아닙니다.
-      </p>
     </div>
   )
 }

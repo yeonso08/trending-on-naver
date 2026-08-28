@@ -16,7 +16,7 @@ export default function TermsPage() {
 
       <h2>1. 목적</h2>
       <p>
-        본 약관은 {SITE.name}(이하 &lsquo;서비스&rsquo;)이 제공하는 검색어 트렌드 정보의 이용 조건과
+        본 약관은 {SITE.name}(이하 &lsquo;서비스&rsquo;)가 제공하는 검색어 트렌드 정보의 이용 조건과
         책임 범위를 정하는 것을 목적으로 합니다.
       </p>
 

@@ -1,9 +1,12 @@
 import { Fragment } from 'react'
 
 import type { TrendingTopic } from '@/entities/trending/model/types'
+import { ADSENSE_ENABLED, ADSENSE_SLOTS } from '@/shared/config/adsense'
 import { AdSlot } from '@/shared/ui/ad-slot'
 
 import { TrendingListItem } from './trending-list-item'
+
+const HAS_IN_FEED_AD = ADSENSE_ENABLED && Boolean(ADSENSE_SLOTS['in-feed'])
 
 interface TrendingListProps {
   topics: TrendingTopic[]
@@ -27,7 +30,7 @@ export function TrendingList({ topics, adAfterRank = 5, showThumbnail = true }: 
       {topics.map((topic) => (
         <Fragment key={topic.slug}>
           <TrendingListItem topic={topic} showThumbnail={showThumbnail} />
-          {topic.rank === adAfterRank && (
+          {HAS_IN_FEED_AD && topic.rank === adAfterRank && (
             <li className="px-3 py-3 sm:px-4">
               <AdSlot format="in-feed" />
             </li>

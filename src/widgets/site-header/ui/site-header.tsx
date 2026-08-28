@@ -1,24 +1,10 @@
 import Link from 'next/link'
 
 import { ModeToggle } from '@/components/mode-toggle'
-import { NAV_LINKS, SITE } from '@/shared/config/site'
+import { SITE } from '@/shared/config/site'
 import { KeywiMark } from '@/shared/ui/brand/keywi-mark'
 
-function NavLinks({ className }: { className?: string }) {
-  return (
-    <nav className={className}>
-      {NAV_LINKS.map((link) => (
-        <Link
-          key={link.href}
-          href={link.href}
-          className="shrink-0 rounded-md px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-        >
-          {link.label}
-        </Link>
-      ))}
-    </nav>
-  )
-}
+import { NavLinks } from './nav-links'
 
 export function SiteHeader() {
   return (
