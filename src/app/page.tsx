@@ -2,7 +2,13 @@ import type { Metadata } from 'next'
 
 import { getTrendingTopics } from '@/entities/trending/api/get-trending-topics'
 import { SITE } from '@/shared/config/site'
+import {
+  buildGraph,
+  buildTrendingItemListSchema,
+  buildWebSiteSchema,
+} from '@/shared/model/structured-data'
 import { AdSlot } from '@/shared/ui/ad-slot'
+import { JsonLd } from '@/shared/ui/json-ld'
 import { TrendingSearches } from '@/widgets/trending-searches/ui/trending-searches'
 
 export const metadata: Metadata = {
@@ -17,6 +23,7 @@ export default async function Home() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
+      <JsonLd data={buildGraph(buildWebSiteSchema(), buildTrendingItemListSchema(topics))} />
       <section className="mx-auto max-w-2xl text-center">
         <h1 className="text-balance text-3xl font-extrabold leading-[1.15] tracking-tight sm:text-[42px]">
           지금 대한민국이
