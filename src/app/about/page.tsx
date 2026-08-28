@@ -3,8 +3,7 @@ import type { Metadata } from 'next'
 import { SITE } from '@/shared/config/site'
 import { Prose } from '@/shared/ui/prose'
 
-// TODO: 공개할 문의용 주소로 교체할 것. AdSense 심사에서 연락 수단을 확인한다.
-const CONTACT_EMAIL = 'contact@example.com'
+const CONTACT_EMAIL = 'nukko.team@gmail.com'
 
 export const metadata: Metadata = {
   title: '서비스 소개',
@@ -54,7 +53,9 @@ export default function AboutPage() {
 
       <h2>문의</h2>
       <p>서비스에 대한 문의나 오류 제보는 아래 메일로 보내 주세요.</p>
-      <p>{CONTACT_EMAIL}</p>
+      <p>
+        <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+      </p>
     </Prose>
   )
 }

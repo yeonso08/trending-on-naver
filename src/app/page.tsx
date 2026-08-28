@@ -36,14 +36,14 @@ export default async function Home() {
       </section>
 
       <div className="mt-8">
-        <AdSlot format="leaderboard" debug />
+        <AdSlot format="leaderboard" />
       </div>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start">
         <TrendingSearches topics={topics} fetchedAt={fetchedAt} />
 
         <div className="space-y-6 lg:sticky lg:top-20">
-          <AdSlot format="rectangle" debug />
+          <AdSlot format="rectangle" />
         </div>
       </div>
     </div>
