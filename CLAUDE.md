@@ -194,8 +194,10 @@ ISR의 `revalidate: 60`은 "60초마다 자동 갱신"이 아니라 **stale-whil
 4. **순위 밖 검색어는 soft 404입니다.** `notFound()`를 호출하지만 ISR 캐시를 거치면서 HTTP 상태가 200으로 나갑니다(Next.js의 알려진 동작). `generateMetadata`가 `noindex, nofollow`를 붙이므로 색인되지는 않습니다. `dynamicParams = false`로 바꾸면 진짜 404가 되지만, 그러면 빌드 이후 새로 뜬 검색어가 전부 404가 되므로 쓰면 안 됩니다.
 5. **`AdSlot`은 설정이 없으면 아무것도 렌더하지 않습니다.** 예전에는 점선 자리표시자를 그렸는데 그대로 배포되면 미완성으로 보여서 걷어냈습니다. `NEXT_PUBLIC_ADSENSE_CLIENT`와 해당 지면의 `ADSENSE_SLOTS` 값이 **둘 다** 있어야 지면이 나옵니다. 지면 크기는 미리 잡아 두었으므로 광고가 들어와도 레이아웃 시프트가 없습니다.
 6. **`/ads.txt`는 정적 파일이 아니라 라우트입니다.** 게시자 ID에서 만들어 내므로 `public/`에 같은 이름의 파일을 두지 마세요 — 충돌합니다. ID가 없으면 404를 반환합니다.
-7. **`.next` 캐시가 소스 변경을 반영하지 못하는 경우가 있습니다.** 화면이 예전 그대로면 `rm -rf .next` 후 다시 빌드하세요.
-8. **`generateStaticParams`에는 인코딩하지 않은 원본 문자열을 넘겨야 합니다.** Next.js가 URL 인코딩을 담당하므로 `encodeURIComponent`한 값을 넘기면 이중 인코딩됩니다. 렌더 시점에 `decodeURIComponent`를 한 번 해도 `%EA%B0%84...`가 남아 검색어 매칭에 실패하고, 한글 검색어 페이지가 전부 not-found로 프리렌더됩니다. 라틴 문자 검색어(`mlb`)만 멀쩡해서 눈치채기 어렵습니다. `TrendingTopic.slug`는 **링크·사이트맵 전용**입니다.
+7. **AdSense 스크립트를 `next/script`로 바꾸지 마세요.** `afterInteractive` 전략은 `<head>`에 preload 링크만 남기고 실제 `<script>`를 하이드레이션 후 JS로 주입합니다. 구글은 스니펫을 `<head>`에 두라고 안내하고, JS를 실행하지 않는 크롤러는 그 태그를 보지 못합니다. `layout.tsx`에서 평범한 `<script>`로 직접 찍습니다.
+8. **자동 광고는 끈 채로 둡니다.** 수동 광고 단위로 갑니다 — `AdSlot`이 지면 높이를 미리 확보해 레이아웃 시프트를 막는데, 자동 광고를 켜면 그 설계가 무의미해지고 지면이 중복됩니다. 배경은 `docs/PROGRESS.md` 1-16절에 있습니다.
+9. **`.next` 캐시가 소스 변경을 반영하지 못하는 경우가 있습니다.** 화면이 예전 그대로면 `rm -rf .next` 후 다시 빌드하세요.
+10. **`generateStaticParams`에는 인코딩하지 않은 원본 문자열을 넘겨야 합니다.** Next.js가 URL 인코딩을 담당하므로 `encodeURIComponent`한 값을 넘기면 이중 인코딩됩니다. 렌더 시점에 `decodeURIComponent`를 한 번 해도 `%EA%B0%84...`가 남아 검색어 매칭에 실패하고, 한글 검색어 페이지가 전부 not-found로 프리렌더됩니다. 라틴 문자 검색어(`mlb`)만 멀쩡해서 눈치채기 어렵습니다. `TrendingTopic.slug`는 **링크·사이트맵 전용**입니다.
 
 ## 폰트
 
