@@ -79,10 +79,15 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
               초안 · 배포본에는 나가지 않습니다
             </span>
           )}
-          <h1 className="mt-2 text-balance text-[30px] font-extrabold leading-tight tracking-tight sm:text-[36px]">
+          {/*
+            text-balance는 줄 길이를 맞추느라 첫 줄 오른쪽을 비워 둔다. 긴 한국어 제목에선 빈 공간으로 보이므로
+            쓰지 않는다. 대신 break-keep으로 음절 중간("추/이")이 아니라 띄어쓰기에서만 줄을 바꾸고,
+            text-pretty로 마지막 줄에 단어 하나만 남는 것("… 볼 수 / 있나")을 막는다.
+          */}
+          <h1 className="mt-2 text-pretty break-keep text-[30px] font-extrabold leading-tight tracking-tight sm:text-[36px]">
             {article.title}
           </h1>
-          <p className="mt-4 text-pretty text-[16px] leading-relaxed text-muted-foreground">
+          <p className="mt-4 break-keep text-[16px] leading-relaxed text-muted-foreground">
             {article.description}
           </p>
           <p className="mt-5 text-[13px] text-muted-foreground">

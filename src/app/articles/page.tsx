@@ -47,7 +47,7 @@ export default async function ArticlesPage() {
                 href={`/articles/${article.slug}`}
                 className="group block px-4 py-5 transition-colors hover:bg-muted/60 sm:px-5"
               >
-                <h2 className="text-pretty text-[17px] font-bold leading-snug tracking-tight">
+                <h2 className="break-keep text-[17px] font-bold leading-snug tracking-tight">
                   {article.draft && (
                     <span className="mr-2 rounded bg-muted px-1.5 py-0.5 align-middle text-[11px] font-semibold text-muted-foreground">
                       초안
@@ -55,7 +55,7 @@ export default async function ArticlesPage() {
                   )}
                   {article.title}
                 </h2>
-                <p className="mt-2 line-clamp-2 text-pretty text-[14px] leading-relaxed text-muted-foreground">
+                <p className="mt-2 line-clamp-2 break-keep text-[14px] leading-relaxed text-muted-foreground">
                   {article.description}
                 </p>
                 <p className="mt-3 text-[12px] text-muted-foreground">
