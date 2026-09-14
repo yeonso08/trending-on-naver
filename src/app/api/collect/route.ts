@@ -6,7 +6,7 @@ import { recordSnapshot } from '@/entities/trending/api/keyword-history'
 import { getTrendingTopics } from '@/entities/trending/api/get-trending-topics'
 
 /**
- * 검색어 이력 수집. Supabase pg_cron이 pg_net으로 5분마다 호출한다
+ * 검색어 이력 수집. Supabase pg_cron이 pg_net으로 1분마다 호출한다
  * (db/migrations/002_collect_schedule.sql). GitHub Actions 스케줄은 몇 시간씩 밀려 쓰지 않는다.
  */
 export const dynamic = 'force-dynamic'

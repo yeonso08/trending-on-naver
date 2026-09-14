@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 
-import { getTrendingTopics } from '@/entities/trending/api/get-trending-topics'
+import { getTrendingSnapshot } from '@/entities/trending/api/get-trending-topics'
 
 /**
  * 라우트 자체를 매 요청 실행하되, 내부 getTrendingTopics()의 fetch는
@@ -9,6 +9,6 @@ import { getTrendingTopics } from '@/entities/trending/api/get-trending-topics'
 export const dynamic = 'force-dynamic'
 
 export async function GET() {
-  const topics = await getTrendingTopics()
-  return NextResponse.json({ topics, fetchedAt: new Date().toISOString() })
+  const snapshot = await getTrendingSnapshot()
+  return NextResponse.json(snapshot)
 }

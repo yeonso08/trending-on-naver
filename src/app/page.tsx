@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 
-import { getTrendingTopics } from '@/entities/trending/api/get-trending-topics'
+import { getTrendingSnapshot } from '@/entities/trending/api/get-trending-topics'
 import { cn } from '@/lib/utils'
 import { ADSENSE_ENABLED, ADSENSE_SLOTS } from '@/shared/config/adsense'
 import { SITE } from '@/shared/config/site'
@@ -27,8 +27,7 @@ export const metadata: Metadata = {
 }
 
 export default async function Home() {
-  const topics = await getTrendingTopics()
-  const fetchedAt = new Date().toISOString()
+  const { topics, fetchedAt } = await getTrendingSnapshot()
 
   // 광고 단위가 아직 없으면 AdSlot이 아무것도 렌더하지 않는다. 그 상태로 2단 그리드를
   // 유지하면 사이드바 자리만 텅 빈 채 남아 본문이 가운데서 왼쪽으로 밀려 보인다.

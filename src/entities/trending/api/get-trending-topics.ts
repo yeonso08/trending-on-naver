@@ -54,16 +54,36 @@ function mapNewsItem(raw: RawNewsItem): TrendingNewsItem | null {
  * 프리렌더 단계가 통째로 실패해 배포 자체가 깨진다. 조회 실패는 빈 배열로 처리하고
  * 호출부가 빈 목록을 다루게 한다. ISR이 다음 주기에 다시 시도한다.
  */
-export async function getTrendingTopics(): Promise<TrendingTopic[]> {
+export async function getTrendingSnapshot(): Promise<TrendingSnapshot> {
   try {
-    return await fetchTrendingTopics()
+    return await fetchTrendingSnapshot()
   } catch (error) {
     console.error('실시간 검색어 조회 실패:', error)
-    return []
+    return { topics: [], fetchedAt: new Date().toISOString() }
   }
 }
 
-async function fetchTrendingTopics(): Promise<TrendingTopic[]> {
+export async function getTrendingTopics(): Promise<TrendingTopic[]> {
+  return (await getTrendingSnapshot()).topics
+}
+
+export interface TrendingSnapshot {
+  topics: TrendingTopic[]
+  /**
+   * 구글이 이 목록을 응답한 시각 (ISO). 화면의 "○○ 업데이트"에 쓴다.
+   * 렌더 시각(new Date())을 쓰면 안 된다 — 데이터 캐시는 만료된 응답을 먼저 내주고 뒤에서
+   * 갱신하므로(stale-while-revalidate), 렌더 시각은 실제 데이터보다 몇 분 새것처럼 보인다.
+   */
+  fetchedAt: string
+}
+
+/** 캐시된 fetch 응답도 원래 헤더를 그대로 보존하므로 Date 헤더가 곧 구글 응답 시각이다. */
+function resolveFetchedAt(response: Response): string {
+  const date = new Date(response.headers.get('date') ?? Date.now())
+  return Number.isNaN(date.getTime()) ? new Date().toISOString() : date.toISOString()
+}
+
+async function fetchTrendingSnapshot(): Promise<TrendingSnapshot> {
   const response = await fetch(TRENDS_RSS_URL, {
     headers: {
       Accept: 'application/rss+xml, application/xml',
@@ -81,7 +101,7 @@ async function fetchTrendingTopics(): Promise<TrendingTopic[]> {
   const parsed = parser.parse(await response.text())
   const items = toArray<RawItem>(parsed?.rss?.channel?.item)
 
-  return items.map((item, index) => {
+  const topics = items.map((item, index) => {
     // 숫자로만 이루어진 검색어는 파서가 number로 돌려주므로 문자열로 되돌린다
     const title = String(item.title ?? '').trim()
 
@@ -99,6 +119,8 @@ async function fetchTrendingTopics(): Promise<TrendingTopic[]> {
         .filter((news): news is TrendingNewsItem => news !== null),
     }
   })
+
+  return { topics, fetchedAt: resolveFetchedAt(response) }
 }
 
 export async function getTrendingTopicByKeyword(keyword: string): Promise<TrendingTopic | null> {
