@@ -18,7 +18,7 @@ export const NAV_LINKS = [
   // 글이 하나도 없으면 SiteHeader가 이 링크를 뺀다.
   // 해설 글과 앞으로 올릴 주간·월간 리포트를 함께 담는 이름이라 '글'이 아니라 '인사이트'. 주소는 /articles 그대로.
   { href: '/articles', label: '인사이트' },
-  { href: '/about', label: '소개' },
+  // 서비스 소개(/about)는 헤더에서 뺐다. 푸터의 '서비스 소개' 링크로 들어간다.
 ] as const
 
 export type NavLink = (typeof NAV_LINKS)[number]

@@ -157,10 +157,10 @@ src/
     /                    실시간 검색어 순위 (ISR 60초)
     /analysis            검색어 트렌드 분석 (데이터랩)
     /keyword/[keyword]   검색어 상세 — 기록 해석 문장 + 관련 뉴스 + 30일 추이 (SSG)
-    /daily               날짜별 기록 목록 (ISR 10분)
-    /daily/[date]        하루 동안 순위에 오른 검색어 — 요약 문장 + 최고 순위·체류 시간 (ISR 10분)
-    /articles            직접 쓴 글 목록 (정적). 글이 없으면 noindex
-    /articles/[slug]     글 상세 (SSG, dynamicParams=false — 없는 주소는 진짜 404)
+    /daily               날짜별 기록 목록 (ISR — 사이드바 순위 fetch 때문에 실제 1분)
+    /daily/[date]        하루 동안 순위에 오른 검색어 — 요약 문장 + 최고 순위·체류 시간 (ISR 1분)
+    /articles            인사이트(직접 쓴 글) 목록 (ISR 1분). 글이 없으면 noindex
+    /articles/[slug]     글 상세 (SSG + ISR 1분, dynamicParams=false — 없는 주소는 진짜 404)
     /about /privacy /terms   정적 문서 (AdSense 심사에 필요)
     sitemap.ts robots.ts     SEO
     api/trends           네이버 데이터랩 프록시 (POST)
@@ -211,7 +211,8 @@ ISR의 `revalidate`는 "주기마다 자동 갱신"이 아니라 **stale-while-r
 ⚠️ **GitHub Actions 예약 작업으로 캐시를 데우는 방식은 쓰지 마세요.** 예전에 `*/10`으로 홈페이지를 `curl`했지만 GitHub가 무료 예약 작업을 부하에 따라 미뤄 실제로는 2\~5시간에 한 번 돌았습니다(2026-09-14 실행 기록으로 확인). 정확한 주기가 필요한 작업은 Supabase `pg_cron`으로 돌립니다.
 
 - 화면의 "○○ 업데이트"는 **구글이 그 목록을 응답한 시각(`fetchedAt`, 응답의 `Date` 헤더)**입니다. 캐시된 응답도 원래 헤더를 보존하므로 캐시를 거쳐도 실제 데이터 시각이 나옵니다. **렌더 시각(`new Date()`)을 쓰지 마세요** — 위의 stale-while-revalidate 때문에 실제보다 몇 분 새것처럼 보입니다. RSS의 `pubDate`(그 검색어가 트렌드에 오른 시각)도 아닙니다.
-- `TrendingSearches`는 `compact` prop이 있습니다. 300px 사이드바(`/analysis`, `/keyword/[keyword]`)에서는 켜서 썸네일과 인피드 광고를 뺍니다.
+- `TrendingSearches`는 `compact` prop이 있습니다. 300px 사이드바(`/analysis`, `/keyword/[keyword]`, `/daily`, `/daily/[date]`, `/articles`, `/articles/[slug]`)에서는 켜서 썸네일과 인피드 광고를 뺍니다. 뒤의 네 페이지는 `widgets/trending-searches/ui/trending-sidebar-layout.tsx`(`TrendingSidebarLayout`)로 감쌉니다. 사이드바가 `revalidate: 60` fetch를 하므로 **그 페이지들의 ISR 주기도 1분으로 짧아집니다**(Next는 페이지 설정과 fetch 중 가장 짧은 값을 씀).
+- 헤더 메뉴는 실시간 순위·트렌드 분석·날짜별 기록·인사이트 네 개입니다. 서비스 소개(`/about`)는 푸터에서만 링크합니다.
 
 ## 코드 스타일
 
