@@ -1,6 +1,7 @@
 import { ImageResponse } from 'next/og'
 
 import { getTrendingTopicByKeyword } from '@/entities/trending/api/get-trending-topics'
+import { getKeywordRecord } from '@/entities/trending/api/keyword-history'
 import { SITE } from '@/shared/config/site'
 import {
   keywiMarkDataUri,
@@ -30,6 +31,10 @@ export default async function KeywordOpengraphImage({
   const [{ keyword: rawKeyword }, fonts] = await Promise.all([params, loadOgFonts()])
   const keyword = decodeURIComponent(rawKeyword)
   const topic = await getTrendingTopicByKeyword(keyword)
+  // 순위에서 내려간 검색어는 DB에 남은 최고 순위를 보여준다
+  const record = topic ? null : await getKeywordRecord(keyword)
+  const rankLabel = topic ? `실시간 ${topic.rank}위` : record ? `최고 ${record.bestRank}위` : null
+  const approxTraffic = topic?.approxTraffic || record?.approxTraffic
 
   return new ImageResponse(
     <div
@@ -71,7 +76,7 @@ export default async function KeywordOpengraphImage({
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column' }}>
-        {topic ? (
+        {rankLabel ? (
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <span
               style={{
@@ -85,11 +90,11 @@ export default async function KeywordOpengraphImage({
                 letterSpacing: -0.6,
               }}
             >
-              실시간 {topic.rank}위
+              {rankLabel}
             </span>
-            {topic.approxTraffic ? (
+            {approxTraffic ? (
               <span style={{ marginLeft: 18, fontSize: 27, color: OG_COLORS.muted }}>
-                검색량 {topic.approxTraffic}
+                검색량 {approxTraffic}
               </span>
             ) : null}
           </div>
