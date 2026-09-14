@@ -159,6 +159,8 @@ src/
     /keyword/[keyword]   검색어 상세 — 기록 해석 문장 + 관련 뉴스 + 30일 추이 (SSG)
     /daily               날짜별 기록 목록 (ISR 10분)
     /daily/[date]        하루 동안 순위에 오른 검색어 — 요약 문장 + 최고 순위·체류 시간 (ISR 10분)
+    /articles            직접 쓴 글 목록 (정적). 글이 없으면 noindex
+    /articles/[slug]     글 상세 (SSG, dynamicParams=false — 없는 주소는 진짜 404)
     /about /privacy /terms   정적 문서 (AdSense 심사에 필요)
     sitemap.ts robots.ts     SEO
     api/trends           네이버 데이터랩 프록시 (POST)
@@ -166,10 +168,12 @@ src/
     api/collect          검색어 이력 수집 (POST, CRON_SECRET) — Supabase pg_cron이 1분마다 호출
   widgets/    페이지 단위 조합 (site-header, site-footer, trends-dashboard, trending-searches)
   features/   기능 단위 (trend-analysis, trending-list, keyword-detail)
-  entities/   도메인 모델 + 데이터 조회 (trending)
-  shared/     config/site.ts, types/, ui/ (ad-slot, prose)
+  entities/   도메인 모델 + 데이터 조회 (trending, article)
+  shared/     config/site.ts, types/, lib/format.ts, ui/ (ad-slot, prose, article-prose)
   components/ shadcn/ui 컴포넌트 + theme-provider, mode-toggle
   lib/        cn() 유틸
+content/
+  articles/   글 원본 마크다운 (<slug>.md). 작성 규칙은 content/articles/README.md
 ```
 
 - 슬라이스 내부는 `ui/`, `model/`로 나눕니다.
@@ -182,6 +186,10 @@ src/
 - **실시간 검색어**: `entities/trending/api/get-trending-topics.ts`가 구글 RSS를 fetch → `fast-xml-parser`로 파싱. 목록과 업데이트 시각이 함께 필요하면 `getTrendingSnapshot()`(`{ topics, fetchedAt }`), 목록만이면 `getTrendingTopics()`. `next: { revalidate: 60 }`으로 1분 데이터 캐시. 페이지가 아니라 이 모듈이 유일한 진입점이므로 새 화면에서도 여기를 쓴다.
 - **기록 해석·날짜별 기록**: `entities/trending/api/keyword-archive.ts`(`getKeywordRankedMinutes`, `getDailyRanking`, `listArchiveDates`)가 스냅샷을 구간으로 펼쳐 체류 시간을 계산한다. 스냅샷 하나는 다음 스냅샷까지 유효하되 `checked_at + 2분`에서 끊는다(수집이 멈춘 구간을 순위권으로 치지 않게). 문장은 `features/keyword-detail/model/build-keyword-insight.ts`가 만든다. 날짜 경계는 KST, 포맷 유틸은 `shared/lib/format.ts`.
 - RSS는 제목·시각 외에 **검색량(`ht:approx_traffic`), 썸네일, 관련 뉴스 목록**까지 준다. 상세 페이지 콘텐츠가 전부 여기서 나온다.
+- **글**: `entities/article/api/get-articles.ts`가 `content/articles/*.md`를 읽어 `gray-matter`로 frontmatter(`title`·`description`·`date` 필수)를 검사하고 `marked`로 HTML을 만든다. 형식 오류는 파일 이름과 함께 던져 **빌드를 멈춘다**. `draft: true`는 `NODE_ENV !== 'production'`에서만 보인다.
+  - **글이 0개면 헤더 '글' 메뉴·사이트맵 항목을 빼고 `/articles`는 noindex.** 빈 페이지가 미완성으로 보이지 않게 — `AdSlot`과 같은 원칙. `SiteHeader`(async 서버 컴포넌트)가 `listArticles()`로 판단해 `NavLinks`에 `links`를 넘긴다.
+  - ⚠️ 헤더가 레이아웃에 있어 **동적 라우트(홈 등)도 런타임에 글 폴더를 읽는다.** `next.config.ts`의 `outputFileTracingIncludes`로 `content/articles/**`를 번들에 넣었다. 빠지면 배포본에서만 '글' 메뉴가 사라진다.
+  - 글은 레포에 커밋되는 신뢰된 원본이라 HTML을 새니타이즈하지 않는다. 외부 입력을 이 경로로 넣지 말 것.
 - **검색어 이력**: Supabase `pg_cron` → `POST /api/collect` → `entities/trending/api/keyword-history.ts`의 `recordSnapshot`이 Supabase Postgres에 기록. 스키마는 `db/migrations/`(001 테이블, 002 cron). `/keyword/[keyword]`·OG 이미지·사이트맵은 순위권이 아니면 `getKeywordRecord`/`listRecordedKeywords`로 DB 기록을 읽는다. DB 클라이언트는 `shared/api/db.ts`(`postgres` 드라이버, 서버 전용).
   - **홈은 DB를 읽지 않는다.** DB 장애가 실시간 순위 표시를 막지 않게 RSS만 쓴다.
   - ⚠️ jsonb 파라미터는 `${JSON.stringify(x)}::text::jsonb`로 넘긴다. `::jsonb`만 붙이면 postgres.js가 한 번 더 인코딩해 배열 대신 문자열 스칼라가 저장된다.
