@@ -11,6 +11,10 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     '/opengraph-image': ['./public/fonts/pretendard/og/**'],
     '/keyword/[keyword]/opengraph-image': ['./public/fonts/pretendard/og/**'],
+    // 레이아웃의 SiteHeader가 글 폴더를 읽어 '글' 메뉴를 보일지 정한다. 동적 라우트(홈 등)와
+    // ISR 재생성은 요청 시점에 실행되므로 번들에 없으면 배포본에서만 메뉴가 사라진다.
+    '/': ['./content/articles/**'],
+    '/**/*': ['./content/articles/**'],
   },
   images: {
     remotePatterns: [

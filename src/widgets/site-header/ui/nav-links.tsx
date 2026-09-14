@@ -4,19 +4,26 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 import { cn } from '@/lib/utils'
-import { NAV_LINKS } from '@/shared/config/site'
+import type { NavLink } from '@/shared/config/site'
 
 /** 홈('/')은 정확히 일치할 때만, 나머지는 하위 경로도 활성으로 본다 */
 function isActive(pathname: string, href: string) {
   return href === '/' ? pathname === '/' : pathname.startsWith(href)
 }
 
-export function NavLinks({ className }: { className?: string }) {
+/** 어떤 링크를 보일지는 서버 쪽 SiteHeader가 정한다 (글이 없으면 '글' 제외) */
+export function NavLinks({
+  links,
+  className,
+}: {
+  links: ReadonlyArray<NavLink>
+  className?: string
+}) {
   const pathname = usePathname()
 
   return (
     <nav className={className}>
-      {NAV_LINKS.map((link) => {
+      {links.map((link) => {
         const active = isActive(pathname, link.href)
 
         return (

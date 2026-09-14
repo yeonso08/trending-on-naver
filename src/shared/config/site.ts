@@ -15,5 +15,9 @@ export const NAV_LINKS = [
   { href: '/', label: '실시간 순위' },
   { href: '/analysis', label: '트렌드 분석' },
   { href: '/daily', label: '날짜별 기록' },
+  // 글이 하나도 없으면 SiteHeader가 이 링크를 뺀다
+  { href: '/articles', label: '글' },
   { href: '/about', label: '소개' },
 ] as const
+
+export type NavLink = (typeof NAV_LINKS)[number]
