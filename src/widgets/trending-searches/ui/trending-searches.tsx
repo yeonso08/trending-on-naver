@@ -58,6 +58,9 @@ export function TrendingSearches({
       }
     }
 
+    // 캐시된 페이지(ISR 상세 페이지, 뒤로 가기 복원)는 초기 목록이 묵어 있을 수 있다.
+    // 첫 주기를 기다리지 않고 들어오자마자 한 번 갱신한다.
+    refresh()
     const intervalId = setInterval(refresh, POLL_INTERVAL_MS)
     document.addEventListener('visibilitychange', refresh)
 

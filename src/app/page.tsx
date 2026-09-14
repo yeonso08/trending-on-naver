@@ -13,6 +13,13 @@ import { AdSlot } from '@/shared/ui/ad-slot'
 import { JsonLd } from '@/shared/ui/json-ld'
 import { TrendingSearches } from '@/widgets/trending-searches/ui/trending-searches'
 
+/**
+ * ISR(stale-while-revalidate)은 갱신이 뜸하면 첫 방문자에게 몇 시간 묵은 순위를 준다.
+ * 요청마다 렌더하되, getTrendingTopics()의 fetch는 revalidate: 60을 명시하고 있어
+ * force-dynamic에서도 데이터 캐시를 타므로 구글 RSS 호출은 1분에 한 번으로 묶인다.
+ */
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: `실시간 인기 검색어 순위 | ${SITE.name}`,
   description: SITE.description,
