@@ -15,8 +15,9 @@ export const NAV_LINKS = [
   { href: '/', label: '실시간 순위' },
   { href: '/analysis', label: '트렌드 분석' },
   { href: '/daily', label: '날짜별 기록' },
-  // 글이 하나도 없으면 SiteHeader가 이 링크를 뺀다
-  { href: '/articles', label: '글' },
+  // 글이 하나도 없으면 SiteHeader가 이 링크를 뺀다.
+  // 해설 글과 앞으로 올릴 주간·월간 리포트를 함께 담는 이름이라 '글'이 아니라 '인사이트'. 주소는 /articles 그대로.
+  { href: '/articles', label: '인사이트' },
   { href: '/about', label: '소개' },
 ] as const
 

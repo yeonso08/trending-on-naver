@@ -187,8 +187,8 @@ content/
 - **기록 해석·날짜별 기록**: `entities/trending/api/keyword-archive.ts`(`getKeywordRankedMinutes`, `getDailyRanking`, `listArchiveDates`)가 스냅샷을 구간으로 펼쳐 체류 시간을 계산한다. 스냅샷 하나는 다음 스냅샷까지 유효하되 `checked_at + 2분`에서 끊는다(수집이 멈춘 구간을 순위권으로 치지 않게). 문장은 `features/keyword-detail/model/build-keyword-insight.ts`가 만든다. 날짜 경계는 KST, 포맷 유틸은 `shared/lib/format.ts`.
 - RSS는 제목·시각 외에 **검색량(`ht:approx_traffic`), 썸네일, 관련 뉴스 목록**까지 준다. 상세 페이지 콘텐츠가 전부 여기서 나온다.
 - **글**: `entities/article/api/get-articles.ts`가 `content/articles/*.md`를 읽어 `gray-matter`로 frontmatter(`title`·`description`·`date` 필수)를 검사하고 `marked`로 HTML을 만든다. 형식 오류는 파일 이름과 함께 던져 **빌드를 멈춘다**. `draft: true`는 `NODE_ENV !== 'production'`에서만 보인다.
-  - **글이 0개면 헤더 '글' 메뉴·사이트맵 항목을 빼고 `/articles`는 noindex.** 빈 페이지가 미완성으로 보이지 않게 — `AdSlot`과 같은 원칙. `SiteHeader`(async 서버 컴포넌트)가 `listArticles()`로 판단해 `NavLinks`에 `links`를 넘긴다.
-  - ⚠️ 헤더가 레이아웃에 있어 **동적 라우트(홈 등)도 런타임에 글 폴더를 읽는다.** `next.config.ts`의 `outputFileTracingIncludes`로 `content/articles/**`를 번들에 넣었다. 빠지면 배포본에서만 '글' 메뉴가 사라진다.
+  - **글이 0개면 헤더 '인사이트' 메뉴(주소 `/articles`)·사이트맵 항목을 빼고 `/articles`는 noindex.** 빈 페이지가 미완성으로 보이지 않게 — `AdSlot`과 같은 원칙. `SiteHeader`(async 서버 컴포넌트)가 `listArticles()`로 판단해 `NavLinks`에 `links`를 넘긴다.
+  - ⚠️ 헤더가 레이아웃에 있어 **동적 라우트(홈 등)도 런타임에 글 폴더를 읽는다.** `next.config.ts`의 `outputFileTracingIncludes`로 `content/articles/**`를 번들에 넣었다. 빠지면 배포본에서만 '인사이트' 메뉴가 사라진다.
   - 글은 레포에 커밋되는 신뢰된 원본이라 HTML을 새니타이즈하지 않는다. 외부 입력을 이 경로로 넣지 말 것.
   - ⚠️ 마크다운 본문의 물결표는 숫자 사이든 글자 사이든(`1\~2분`, `중순\~11월`) 모두 이스케이프한다. 한 줄에 `~`가 두 개면 Prettier가 GFM 취소선으로 보고 `~~`로 바꿔 사이 글자에 취소선이 그어진다(2026-09-14 실제로 발생). frontmatter는 평문으로 찍히므로 이스케이프하지 않는다.
 - **검색어 이력**: Supabase `pg_cron` → `POST /api/collect` → `entities/trending/api/keyword-history.ts`의 `recordSnapshot`이 Supabase Postgres에 기록. 스키마는 `db/migrations/`(001 테이블, 002 cron). `/keyword/[keyword]`·OG 이미지·사이트맵은 순위권이 아니면 `getKeywordRecord`/`listRecordedKeywords`로 DB 기록을 읽는다. DB 클라이언트는 `shared/api/db.ts`(`postgres` 드라이버, 서버 전용).

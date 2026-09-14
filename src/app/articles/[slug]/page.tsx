@@ -58,7 +58,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
       <JsonLd
         data={buildGraph(
           buildBreadcrumbSchema([
-            { name: '글', path: '/articles' },
+            { name: '인사이트', path: '/articles' },
             { name: article.title, path: `/articles/${article.slug}` },
           ]),
           buildArticleSchema(article)
@@ -69,7 +69,8 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         href="/articles"
         className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground transition-colors hover:text-foreground"
       >
-        <ArrowLeft className="h-3.5 w-3.5" />글 목록
+        <ArrowLeft className="h-3.5 w-3.5" />
+        인사이트
       </Link>
 
       <article className="mt-6">

@@ -13,7 +13,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const articles = await listArticles()
 
   return {
-    title: '글',
+    title: '인사이트',
     description: DESCRIPTION,
     alternates: { canonical: '/articles' },
     // 글이 없을 때 빈 목록 페이지를 색인시키지 않는다. 메뉴·사이트맵에서도 빠진다.
@@ -26,10 +26,10 @@ export default async function ArticlesPage() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6 sm:py-12">
-      <JsonLd data={buildGraph(buildBreadcrumbSchema([{ name: '글', path: '/articles' }]))} />
+      <JsonLd data={buildGraph(buildBreadcrumbSchema([{ name: '인사이트', path: '/articles' }]))} />
 
       <h1 className="text-balance text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl">
-        글
+        인사이트
       </h1>
       <p className="mt-4 text-pretty text-[15px] leading-relaxed text-muted-foreground">
         {DESCRIPTION}
