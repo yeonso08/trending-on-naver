@@ -1,12 +1,17 @@
 import Link from 'next/link'
 
 import { ModeToggle } from '@/components/mode-toggle'
-import { SITE } from '@/shared/config/site'
+import { listArticles } from '@/entities/article/api/get-articles'
+import { NAV_LINKS, SITE } from '@/shared/config/site'
 import { KeywiMark } from '@/shared/ui/brand/keywi-mark'
 
 import { NavLinks } from './nav-links'
 
-export function SiteHeader() {
+export async function SiteHeader() {
+  // 글이 없을 때 빈 목록으로 가는 메뉴를 보여주면 미완성으로 보인다
+  const hasArticles = (await listArticles()).length > 0
+  const links = hasArticles ? NAV_LINKS : NAV_LINKS.filter((link) => link.href !== '/articles')
+
   return (
     <header className="sticky top-0 z-50 border-b border-border/70 bg-background/80 backdrop-blur-md">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
@@ -17,7 +22,7 @@ export function SiteHeader() {
           </Link>
 
           {/* 넓은 화면에서는 로고 옆에 붙인다 */}
-          <NavLinks className="hidden items-center gap-1 sm:flex" />
+          <NavLinks links={links} className="hidden items-center gap-1 sm:flex" />
 
           <div className="ml-auto shrink-0">
             <ModeToggle />
@@ -25,7 +30,10 @@ export function SiteHeader() {
         </div>
 
         {/* 좁은 화면에서는 아래 줄로 내려 가로 스크롤시킨다 */}
-        <NavLinks className="-mx-1 flex items-center gap-1 overflow-x-auto pb-2 sm:hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" />
+        <NavLinks
+          links={links}
+          className="-mx-1 flex items-center gap-1 overflow-x-auto pb-2 sm:hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        />
       </div>
     </header>
   )

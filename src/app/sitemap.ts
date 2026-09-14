@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next'
 
+import { listArticles } from '@/entities/article/api/get-articles'
 import { listArchiveDates } from '@/entities/trending/api/keyword-archive'
 import { getTrendingTopics } from '@/entities/trending/api/get-trending-topics'
 import { listRecordedKeywords } from '@/entities/trending/api/keyword-history'
@@ -16,15 +17,33 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ]
 
   // 모두 실패 시 빈 배열을 준다. 사이트맵은 어떤 경우에도 나간다.
-  const [topics, recorded, archiveDates] = await Promise.all([
+  const [topics, recorded, archiveDates, articles] = await Promise.all([
     getTrendingTopics(),
     listRecordedKeywords(),
     listArchiveDates(),
+    listArticles(),
   ])
   const liveKeywords = new Set(topics.map((topic) => topic.title))
 
   return [
     ...staticRoutes,
+    // 글이 없으면 빈 목록 페이지는 noindex라 사이트맵에서도 뺀다
+    ...(articles.length > 0
+      ? [
+          {
+            url: `${SITE.url}/articles`,
+            lastModified: new Date(articles[0].updated ?? articles[0].date),
+            changeFrequency: 'weekly' as const,
+            priority: 0.8,
+          },
+        ]
+      : []),
+    ...articles.map((article) => ({
+      url: `${SITE.url}/articles/${article.slug}`,
+      lastModified: new Date(article.updated ?? article.date),
+      changeFrequency: 'monthly' as const,
+      priority: 0.7,
+    })),
     ...topics.map((topic) => ({
       url: `${SITE.url}/keyword/${topic.slug}`,
       lastModified: topic.pubDate ? new Date(topic.pubDate) : undefined,

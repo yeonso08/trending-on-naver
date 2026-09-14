@@ -52,6 +52,31 @@ export function buildBreadcrumbSchema(trail: Array<{ name: string; path: string 
   }
 }
 
+/** 직접 쓴 글. 작성자·게시일을 명시해 둔다 */
+export function buildArticleSchema(article: {
+  slug: string
+  title: string
+  description: string
+  date: string
+  updated?: string
+  author: string
+}) {
+  const url = `${SITE.url}/articles/${article.slug}`
+
+  return {
+    '@type': 'Article',
+    '@id': `${url}#article`,
+    headline: article.title,
+    description: article.description,
+    datePublished: article.date,
+    dateModified: article.updated ?? article.date,
+    author: { '@type': 'Person', name: article.author },
+    publisher: { '@type': 'Organization', name: SITE.name, url: SITE.url },
+    mainEntityOfPage: url,
+    inLanguage: 'ko-KR',
+  }
+}
+
 /** 여러 스키마를 한 스크립트로 묶는다 */
 export function buildGraph(...nodes: Array<Record<string, unknown>>) {
   return { '@context': 'https://schema.org', '@graph': nodes }
