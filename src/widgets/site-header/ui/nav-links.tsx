@@ -11,7 +11,7 @@ function isActive(pathname: string, href: string) {
   return href === '/' ? pathname === '/' : pathname.startsWith(href)
 }
 
-/** 어떤 링크를 보일지는 서버 쪽 SiteHeader가 정한다 (글이 없으면 '글' 제외) */
+/** 어떤 링크를 보일지는 서버 쪽 SiteHeader가 정한다 (글이 없으면 '인사이트' 제외) */
 export function NavLinks({
   links,
   className,

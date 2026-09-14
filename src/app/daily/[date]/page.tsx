@@ -10,6 +10,7 @@ import { formatDateKey, formatDuration, isValidDateKey, toKstDateKey } from '@/s
 import { buildBreadcrumbSchema, buildGraph } from '@/shared/model/structured-data'
 import { AdSlot } from '@/shared/ui/ad-slot'
 import { JsonLd } from '@/shared/ui/json-ld'
+import { TrendingSidebarLayout } from '@/widgets/trending-searches/ui/trending-sidebar-layout'
 
 interface DailyPageProps {
   params: Promise<{ date: string }>
@@ -84,7 +85,7 @@ export default async function DailyPage({ params }: DailyPageProps) {
   const label = formatDateKey(date)
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6 sm:py-10">
+    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
       <JsonLd
         data={buildGraph(
           buildBreadcrumbSchema([
@@ -94,100 +95,105 @@ export default async function DailyPage({ params }: DailyPageProps) {
         )}
       />
 
-      <Link
-        href="/daily"
-        className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground transition-colors hover:text-foreground"
-      >
-        <ArrowLeft className="h-3.5 w-3.5" />
-        날짜별 기록
-      </Link>
+      <TrendingSidebarLayout>
+        <Link
+          href="/daily"
+          className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          날짜별 기록
+        </Link>
 
-      <header className="mt-5">
-        {isToday && (
-          <span className="rounded-md bg-heat-soft px-2 py-0.5 text-[12px] font-bold text-heat ring-1 ring-inset ring-heat-border">
-            오늘 · 집계 중
-          </span>
-        )}
-        <h1 className="mt-3 text-balance text-[32px] font-extrabold leading-tight tracking-tight sm:text-4xl">
-          {label} 실시간 검색어
-        </h1>
-        <p className="mt-4 text-pretty text-[15px] leading-relaxed text-muted-foreground">
-          {summarize(date, keywords).join(' ')}
-        </p>
-      </header>
+        <header className="mt-5">
+          {isToday && (
+            <span className="rounded-md bg-heat-soft px-2 py-0.5 text-[12px] font-bold text-heat ring-1 ring-inset ring-heat-border">
+              오늘 · 집계 중
+            </span>
+          )}
+          <h1 className="mt-3 text-balance text-[32px] font-extrabold leading-tight tracking-tight sm:text-4xl">
+            {label} 실시간 검색어
+          </h1>
+          <p className="mt-4 text-pretty text-[15px] leading-relaxed text-muted-foreground">
+            {summarize(date, keywords).join(' ')}
+          </p>
+        </header>
 
-      <div className="mt-8">
-        <AdSlot format="leaderboard" />
-      </div>
-
-      <section className="mt-8">
-        <div className="flex items-baseline justify-between gap-2">
-          <h2 className="text-[15px] font-bold tracking-tight">순위에 오른 검색어</h2>
-          <span className="shrink-0 text-[11px] text-muted-foreground">
-            숫자는 그날 최고 순위 · 옆은 순위권에 머문 시간
-          </span>
+        <div className="mt-8">
+          <AdSlot format="leaderboard" />
         </div>
 
-        <ol className="mt-3 divide-y divide-border/60 overflow-hidden rounded-xl border border-border/70 bg-card">
-          {keywords.map((item) => (
-            <li key={item.keyword}>
-              <Link
-                href={`/keyword/${encodeURIComponent(item.keyword)}`}
-                className="group flex items-center gap-3.5 px-3 py-3 transition-colors hover:bg-muted/60 sm:gap-4 sm:px-4"
-              >
-                <TrendingRank rank={item.bestRank} />
+        <section className="mt-8">
+          <div className="flex items-baseline justify-between gap-2">
+            <h2 className="text-[15px] font-bold tracking-tight">순위에 오른 검색어</h2>
+            <span className="shrink-0 text-[11px] text-muted-foreground">
+              숫자는 그날 최고 순위 · 옆은 순위권에 머문 시간
+            </span>
+          </div>
 
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-baseline gap-2">
-                    <h3 className="truncate text-[15px] font-semibold tracking-tight group-hover:text-heat">
-                      {item.keyword}
-                    </h3>
-                    <span className="tabular shrink-0 text-[11px] font-medium text-muted-foreground">
-                      {formatDuration(item.rankedMinutes)}
-                    </span>
+          <ol className="mt-3 divide-y divide-border/60 overflow-hidden rounded-xl border border-border/70 bg-card">
+            {keywords.map((item) => (
+              <li key={item.keyword}>
+                <Link
+                  href={`/keyword/${encodeURIComponent(item.keyword)}`}
+                  className="group flex items-center gap-3.5 px-3 py-3 transition-colors hover:bg-muted/60 sm:gap-4 sm:px-4"
+                >
+                  <TrendingRank rank={item.bestRank} />
+
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-baseline gap-2">
+                      <h3 className="truncate text-[15px] font-semibold tracking-tight group-hover:text-heat">
+                        {item.keyword}
+                      </h3>
+                      <span className="tabular shrink-0 text-[11px] font-medium text-muted-foreground">
+                        {formatDuration(item.rankedMinutes)}
+                      </span>
+                    </div>
+
+                    {item.headline && (
+                      <p className="mt-1 truncate text-[13px] text-muted-foreground">
+                        {item.headline.title}
+                        {item.headline.source && (
+                          <span className="text-muted-foreground/60">
+                            {' '}
+                            · {item.headline.source}
+                          </span>
+                        )}
+                      </p>
+                    )}
                   </div>
+                </Link>
+              </li>
+            ))}
+          </ol>
 
-                  {item.headline && (
-                    <p className="mt-1 truncate text-[13px] text-muted-foreground">
-                      {item.headline.title}
-                      {item.headline.source && (
-                        <span className="text-muted-foreground/60"> · {item.headline.source}</span>
-                      )}
-                    </p>
-                  )}
-                </div>
-              </Link>
-            </li>
-          ))}
-        </ol>
+          <p className="mt-2 text-[11px] text-muted-foreground">
+            키위가 1분마다 수집한 Google 트렌드 실시간 인기 검색어 기준입니다.
+          </p>
+        </section>
 
-        <p className="mt-2 text-[11px] text-muted-foreground">
-          키위가 1분마다 수집한 Google 트렌드 실시간 인기 검색어 기준입니다.
-        </p>
-      </section>
-
-      <nav className="mt-8 flex items-center justify-between gap-4 text-[13px]">
-        {older ? (
-          <Link
-            href={`/daily/${older}`}
-            className="inline-flex items-center gap-1 text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            {formatDateKey(older, { withYear: false })}
-          </Link>
-        ) : (
-          <span />
-        )}
-        {newer && (
-          <Link
-            href={`/daily/${newer}`}
-            className="inline-flex items-center gap-1 text-muted-foreground transition-colors hover:text-foreground"
-          >
-            {formatDateKey(newer, { withYear: false })}
-            <ChevronRight className="h-4 w-4" />
-          </Link>
-        )}
-      </nav>
+        <nav className="mt-8 flex items-center justify-between gap-4 text-[13px]">
+          {older ? (
+            <Link
+              href={`/daily/${older}`}
+              className="inline-flex items-center gap-1 text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              {formatDateKey(older, { withYear: false })}
+            </Link>
+          ) : (
+            <span />
+          )}
+          {newer && (
+            <Link
+              href={`/daily/${newer}`}
+              className="inline-flex items-center gap-1 text-muted-foreground transition-colors hover:text-foreground"
+            >
+              {formatDateKey(newer, { withYear: false })}
+              <ChevronRight className="h-4 w-4" />
+            </Link>
+          )}
+        </nav>
+      </TrendingSidebarLayout>
     </div>
   )
 }

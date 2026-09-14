@@ -16,6 +16,8 @@ export function ArticleProse({ html, className }: { html: string; className?: st
         '[&_ul]:mt-5 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:mt-5 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:mt-2',
         '[&_strong]:font-bold [&_strong]:text-foreground',
         '[&_a]:font-medium [&_a]:text-foreground [&_a]:underline [&_a]:decoration-foreground/30 [&_a]:underline-offset-4 hover:[&_a]:decoration-foreground',
+        // 출처의 긴 URL은 줄바꿈할 곳이 없어 모바일에서 페이지 전체를 가로로 민다(390px에서 431px로 늘어남)
+        '[&_a]:[overflow-wrap:anywhere]',
         '[&_blockquote]:mt-6 [&_blockquote]:border-l-2 [&_blockquote]:border-border [&_blockquote]:pl-4 [&_blockquote]:text-muted-foreground',
         '[&_img]:mt-6 [&_img]:h-auto [&_img]:max-w-full [&_img]:rounded-lg [&_img]:border [&_img]:border-border/70',
         '[&_hr]:my-10 [&_hr]:border-border',

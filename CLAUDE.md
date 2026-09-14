@@ -157,10 +157,10 @@ src/
     /                    실시간 검색어 순위 (ISR 60초)
     /analysis            검색어 트렌드 분석 (데이터랩)
     /keyword/[keyword]   검색어 상세 — 기록 해석 문장 + 관련 뉴스 + 30일 추이 (SSG)
-    /daily               날짜별 기록 목록 (ISR 10분)
-    /daily/[date]        하루 동안 순위에 오른 검색어 — 요약 문장 + 최고 순위·체류 시간 (ISR 10분)
-    /articles            직접 쓴 글 목록 (정적). 글이 없으면 noindex
-    /articles/[slug]     글 상세 (SSG, dynamicParams=false — 없는 주소는 진짜 404)
+    /daily               날짜별 기록 목록 (ISR — 사이드바 순위 fetch 때문에 실제 1분)
+    /daily/[date]        하루 동안 순위에 오른 검색어 — 요약 문장 + 최고 순위·체류 시간 (ISR 1분)
+    /articles            인사이트(직접 쓴 글) 목록 (ISR 1분). 글이 없으면 noindex
+    /articles/[slug]     글 상세 (SSG + ISR 1분, dynamicParams=false — 없는 주소는 진짜 404)
     /about /privacy /terms   정적 문서 (AdSense 심사에 필요)
     sitemap.ts robots.ts     SEO
     api/trends           네이버 데이터랩 프록시 (POST)
@@ -187,8 +187,8 @@ content/
 - **기록 해석·날짜별 기록**: `entities/trending/api/keyword-archive.ts`(`getKeywordRankedMinutes`, `getDailyRanking`, `listArchiveDates`)가 스냅샷을 구간으로 펼쳐 체류 시간을 계산한다. 스냅샷 하나는 다음 스냅샷까지 유효하되 `checked_at + 2분`에서 끊는다(수집이 멈춘 구간을 순위권으로 치지 않게). 문장은 `features/keyword-detail/model/build-keyword-insight.ts`가 만든다. 날짜 경계는 KST, 포맷 유틸은 `shared/lib/format.ts`.
 - RSS는 제목·시각 외에 **검색량(`ht:approx_traffic`), 썸네일, 관련 뉴스 목록**까지 준다. 상세 페이지 콘텐츠가 전부 여기서 나온다.
 - **글**: `entities/article/api/get-articles.ts`가 `content/articles/*.md`를 읽어 `gray-matter`로 frontmatter(`title`·`description`·`date` 필수)를 검사하고 `marked`로 HTML을 만든다. 형식 오류는 파일 이름과 함께 던져 **빌드를 멈춘다**. `draft: true`는 `NODE_ENV !== 'production'`에서만 보인다.
-  - **글이 0개면 헤더 '글' 메뉴·사이트맵 항목을 빼고 `/articles`는 noindex.** 빈 페이지가 미완성으로 보이지 않게 — `AdSlot`과 같은 원칙. `SiteHeader`(async 서버 컴포넌트)가 `listArticles()`로 판단해 `NavLinks`에 `links`를 넘긴다.
-  - ⚠️ 헤더가 레이아웃에 있어 **동적 라우트(홈 등)도 런타임에 글 폴더를 읽는다.** `next.config.ts`의 `outputFileTracingIncludes`로 `content/articles/**`를 번들에 넣었다. 빠지면 배포본에서만 '글' 메뉴가 사라진다.
+  - **글이 0개면 헤더 '인사이트' 메뉴(주소 `/articles`)·사이트맵 항목을 빼고 `/articles`는 noindex.** 빈 페이지가 미완성으로 보이지 않게 — `AdSlot`과 같은 원칙. `SiteHeader`(async 서버 컴포넌트)가 `listArticles()`로 판단해 `NavLinks`에 `links`를 넘긴다.
+  - ⚠️ 헤더가 레이아웃에 있어 **동적 라우트(홈 등)도 런타임에 글 폴더를 읽는다.** `next.config.ts`의 `outputFileTracingIncludes`로 `content/articles/**`를 번들에 넣었다. 빠지면 배포본에서만 '인사이트' 메뉴가 사라진다.
   - 글은 레포에 커밋되는 신뢰된 원본이라 HTML을 새니타이즈하지 않는다. 외부 입력을 이 경로로 넣지 말 것.
   - ⚠️ 마크다운 본문의 물결표는 숫자 사이든 글자 사이든(`1\~2분`, `중순\~11월`) 모두 이스케이프한다. 한 줄에 `~`가 두 개면 Prettier가 GFM 취소선으로 보고 `~~`로 바꿔 사이 글자에 취소선이 그어진다(2026-09-14 실제로 발생). frontmatter는 평문으로 찍히므로 이스케이프하지 않는다.
 - **검색어 이력**: Supabase `pg_cron` → `POST /api/collect` → `entities/trending/api/keyword-history.ts`의 `recordSnapshot`이 Supabase Postgres에 기록. 스키마는 `db/migrations/`(001 테이블, 002 cron). `/keyword/[keyword]`·OG 이미지·사이트맵은 순위권이 아니면 `getKeywordRecord`/`listRecordedKeywords`로 DB 기록을 읽는다. DB 클라이언트는 `shared/api/db.ts`(`postgres` 드라이버, 서버 전용).
@@ -211,7 +211,8 @@ ISR의 `revalidate`는 "주기마다 자동 갱신"이 아니라 **stale-while-r
 ⚠️ **GitHub Actions 예약 작업으로 캐시를 데우는 방식은 쓰지 마세요.** 예전에 `*/10`으로 홈페이지를 `curl`했지만 GitHub가 무료 예약 작업을 부하에 따라 미뤄 실제로는 2\~5시간에 한 번 돌았습니다(2026-09-14 실행 기록으로 확인). 정확한 주기가 필요한 작업은 Supabase `pg_cron`으로 돌립니다.
 
 - 화면의 "○○ 업데이트"는 **구글이 그 목록을 응답한 시각(`fetchedAt`, 응답의 `Date` 헤더)**입니다. 캐시된 응답도 원래 헤더를 보존하므로 캐시를 거쳐도 실제 데이터 시각이 나옵니다. **렌더 시각(`new Date()`)을 쓰지 마세요** — 위의 stale-while-revalidate 때문에 실제보다 몇 분 새것처럼 보입니다. RSS의 `pubDate`(그 검색어가 트렌드에 오른 시각)도 아닙니다.
-- `TrendingSearches`는 `compact` prop이 있습니다. 300px 사이드바(`/analysis`, `/keyword/[keyword]`)에서는 켜서 썸네일과 인피드 광고를 뺍니다.
+- `TrendingSearches`는 `compact` prop이 있습니다. 300px 사이드바(`/analysis`, `/keyword/[keyword]`, `/daily`, `/daily/[date]`, `/articles`, `/articles/[slug]`)에서는 켜서 썸네일과 인피드 광고를 뺍니다. 뒤의 네 페이지는 `widgets/trending-searches/ui/trending-sidebar-layout.tsx`(`TrendingSidebarLayout`)로 감쌉니다. 사이드바가 `revalidate: 60` fetch를 하므로 **그 페이지들의 ISR 주기도 1분으로 짧아집니다**(Next는 페이지 설정과 fetch 중 가장 짧은 값을 씀).
+- 헤더 메뉴는 실시간 순위·트렌드 분석·날짜별 기록·인사이트 네 개입니다. 서비스 소개(`/about`)는 푸터에서만 링크합니다.
 
 ## 코드 스타일
 
