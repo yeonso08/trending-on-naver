@@ -156,12 +156,14 @@ src/
   app/        Next.js App Router
     /                    실시간 검색어 순위 (ISR 60초)
     /analysis            검색어 트렌드 분석 (데이터랩)
-    /keyword/[keyword]   검색어 상세 — 관련 뉴스 + 30일 추이 (SSG)
+    /keyword/[keyword]   검색어 상세 — 기록 해석 문장 + 관련 뉴스 + 30일 추이 (SSG)
+    /daily               날짜별 기록 목록 (ISR 10분)
+    /daily/[date]        하루 동안 순위에 오른 검색어 — 요약 문장 + 최고 순위·체류 시간 (ISR 10분)
     /about /privacy /terms   정적 문서 (AdSense 심사에 필요)
     sitemap.ts robots.ts     SEO
     api/trends           네이버 데이터랩 프록시 (POST)
     api/trending         실시간 검색어 JSON (GET) — 열린 탭 폴링용
-    api/collect          검색어 이력 수집 (POST, CRON_SECRET) — Supabase pg_cron이 5분마다 호출
+    api/collect          검색어 이력 수집 (POST, CRON_SECRET) — Supabase pg_cron이 1분마다 호출
   widgets/    페이지 단위 조합 (site-header, site-footer, trends-dashboard, trending-searches)
   features/   기능 단위 (trend-analysis, trending-list, keyword-detail)
   entities/   도메인 모델 + 데이터 조회 (trending)
@@ -177,7 +179,8 @@ src/
 
 ### 데이터 흐름
 
-- **실시간 검색어**: `entities/trending/api/get-trending-topics.ts`가 구글 RSS를 fetch → `fast-xml-parser`로 파싱 → `TrendingTopic[]` 반환. `next: { revalidate: 60 }`으로 1분 데이터 캐시. 페이지가 아니라 이 모듈이 유일한 진입점이므로 새 화면에서도 여기를 쓴다.
+- **실시간 검색어**: `entities/trending/api/get-trending-topics.ts`가 구글 RSS를 fetch → `fast-xml-parser`로 파싱. 목록과 업데이트 시각이 함께 필요하면 `getTrendingSnapshot()`(`{ topics, fetchedAt }`), 목록만이면 `getTrendingTopics()`. `next: { revalidate: 60 }`으로 1분 데이터 캐시. 페이지가 아니라 이 모듈이 유일한 진입점이므로 새 화면에서도 여기를 쓴다.
+- **기록 해석·날짜별 기록**: `entities/trending/api/keyword-archive.ts`(`getKeywordRankedMinutes`, `getDailyRanking`, `listArchiveDates`)가 스냅샷을 구간으로 펼쳐 체류 시간을 계산한다. 스냅샷 하나는 다음 스냅샷까지 유효하되 `checked_at + 2분`에서 끊는다(수집이 멈춘 구간을 순위권으로 치지 않게). 문장은 `features/keyword-detail/model/build-keyword-insight.ts`가 만든다. 날짜 경계는 KST, 포맷 유틸은 `shared/lib/format.ts`.
 - RSS는 제목·시각 외에 **검색량(`ht:approx_traffic`), 썸네일, 관련 뉴스 목록**까지 준다. 상세 페이지 콘텐츠가 전부 여기서 나온다.
 - **검색어 이력**: Supabase `pg_cron` → `POST /api/collect` → `entities/trending/api/keyword-history.ts`의 `recordSnapshot`이 Supabase Postgres에 기록. 스키마는 `db/migrations/`(001 테이블, 002 cron). `/keyword/[keyword]`·OG 이미지·사이트맵은 순위권이 아니면 `getKeywordRecord`/`listRecordedKeywords`로 DB 기록을 읽는다. DB 클라이언트는 `shared/api/db.ts`(`postgres` 드라이버, 서버 전용).
   - **홈은 DB를 읽지 않는다.** DB 장애가 실시간 순위 표시를 막지 않게 RSS만 쓴다.
@@ -192,9 +195,13 @@ ISR의 `revalidate`는 "주기마다 자동 갱신"이 아니라 **stale-while-r
 1. **홈(`/`)은 `dynamic = 'force-dynamic'`으로 요청마다 렌더합니다.** fetch에 `revalidate: 60`을 명시해 두었으므로 force-dynamic이어도 데이터 캐시는 유지됩니다(Next 15 `patch-fetch.js` — 명시 설정이 없을 때만 캐시를 끔). 방문자가 늘어도 구글 RSS 호출은 1분에 한 번입니다. **fetch의 `revalidate`를 지우면 요청마다 구글을 때리게 되니 주의하세요.**
 2. **`TrendingSearches`의 클라이언트 갱신** — 마운트 즉시 한 번, 이후 60초마다 `GET /api/trending`을 호출합니다. ISR로 캐시된 상세 페이지의 사이드바나 뒤로 가기로 복원된 화면도 곧바로 최신이 되고, 열어 둔 탭은 새로고침 없이 갱신됩니다. 탭이 백그라운드면(`document.hidden`) 건너뛰고, 다시 보이면 즉시 한 번 갱신합니다.
 
+⚠️ **fetch 데이터 캐시도 stale-while-revalidate입니다.** 60초가 지난 항목을 읽으면 _옛 응답을 먼저 돌려주고_ 뒤에서 새로 받습니다(Next 15 `patch-fetch.js`의 `entry.isStale` 분기). 그래서 화면 지연은 "마지막으로 누가 데이터를 가져간 시각"에 달려 있고, 방문자가 뜸할 때는 **1분마다 도는 `/api/collect`가 사실상 캐시를 데우는 역할**을 합니다. 수집 주기를 늘리면 화면 지연도 같이 늘어납니다(5분 주기일 때 최대 약 5분 늦음을 실측).
+
+구글 RSS 자체는 **약 10분마다 목록을 바꾸고 1~2분 뒤 순위·검색량을 한 번 더 고치는 일이 잦습니다**(2026-09-14, 30초 간격 25분 실측: 09:35 → 09:43 → 09:44 보정 → 09:53 → 09:55 보정).
+
 ⚠️ **GitHub Actions 예약 작업으로 캐시를 데우는 방식은 쓰지 마세요.** 예전에 `*/10`으로 홈페이지를 `curl`했지만 GitHub가 무료 예약 작업을 부하에 따라 미뤄 실제로는 2~5시간에 한 번 돌았습니다(2026-09-14 실행 기록으로 확인). 정확한 주기가 필요한 작업은 Supabase `pg_cron`으로 돌립니다.
 
-- 화면의 "○○ 업데이트"는 **서버가 데이터를 실제로 가져온 시각(`fetchedAt`)**입니다. RSS의 `pubDate`(그 검색어가 트렌드에 오른 시각)가 아닙니다 — 예전에 그걸 쓰다가 갱신 시점과 어긋나 보였습니다.
+- 화면의 "○○ 업데이트"는 **구글이 그 목록을 응답한 시각(`fetchedAt`, 응답의 `Date` 헤더)**입니다. 캐시된 응답도 원래 헤더를 보존하므로 캐시를 거쳐도 실제 데이터 시각이 나옵니다. **렌더 시각(`new Date()`)을 쓰지 마세요** — 위의 stale-while-revalidate 때문에 실제보다 몇 분 새것처럼 보입니다. RSS의 `pubDate`(그 검색어가 트렌드에 오른 시각)도 아닙니다.
 - `TrendingSearches`는 `compact` prop이 있습니다. 300px 사이드바(`/analysis`, `/keyword/[keyword]`)에서는 켜서 썸네일과 인피드 광고를 뺍니다.
 
 ## 코드 스타일

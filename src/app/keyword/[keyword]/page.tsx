@@ -5,14 +5,19 @@ import { ArrowLeft, Search } from 'lucide-react'
 
 import {
   buildNaverSearchUrl,
+  getTrendingSnapshot,
   getTrendingTopicByKeyword,
   getTrendingTopics,
 } from '@/entities/trending/api/get-trending-topics'
+import { getKeywordRankedMinutes } from '@/entities/trending/api/keyword-archive'
 import { getKeywordRecord } from '@/entities/trending/api/keyword-history'
+import { buildKeywordInsight } from '@/features/keyword-detail/model/build-keyword-insight'
+import { KeywordInsight } from '@/features/keyword-detail/ui/keyword-insight'
 import { KeywordTrendChart } from '@/features/keyword-detail/ui/keyword-trend-chart'
 import { RelatedNews } from '@/features/keyword-detail/ui/related-news'
 import { getKeywordTrend } from '@/shared/api/naver-datalab'
 import { SITE } from '@/shared/config/site'
+import { formatDateKey, formatKstDate, toKstDateKey } from '@/shared/lib/format'
 import { buildBreadcrumbSchema, buildGraph } from '@/shared/model/structured-data'
 import { AdSlot } from '@/shared/ui/ad-slot'
 import { JsonLd } from '@/shared/ui/json-ld'
@@ -32,22 +37,15 @@ export async function generateStaticParams() {
 
 /**
  * 지금 순위권이면 실시간 데이터를, 순위에서 내려갔으면 DB에 쌓인 기록을 쓴다.
+ * 순위권이어도 기록은 함께 읽는다 — 처음 등장 시각·체류 시간 같은 설명 문장에 쓴다.
  * 둘 다 없으면 한 번도 순위에 오른 적 없는 검색어다.
  */
 async function loadKeyword(keyword: string) {
-  const topic = await getTrendingTopicByKeyword(keyword)
-  const record = topic ? null : await getKeywordRecord(keyword)
+  const [topic, record] = await Promise.all([
+    getTrendingTopicByKeyword(keyword),
+    getKeywordRecord(keyword),
+  ])
   return { topic, record }
-}
-
-/** 서버는 UTC로 돈다. 타임존을 빼면 9시간 어긋난다. */
-function formatSeenAt(isoDate: string): string {
-  return new Intl.DateTimeFormat('ko-KR', {
-    timeZone: 'Asia/Seoul',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  }).format(new Date(isoDate))
 }
 
 export async function generateMetadata({ params }: KeywordPageProps): Promise<Metadata> {
@@ -62,7 +60,7 @@ export async function generateMetadata({ params }: KeywordPageProps): Promise<Me
   const slug = topic?.slug ?? encodeURIComponent(keyword)
   const headline = topic
     ? `실시간 검색어 ${topic.rank}위`
-    : `검색어 최고 ${record!.bestRank}위 (${formatSeenAt(record!.lastSeenAt)})`
+    : `검색어 최고 ${record!.bestRank}위 (${formatKstDate(record!.lastSeenAt)})`
   const firstNews = (topic?.news ?? record!.news)[0]
   const description = firstNews
     ? `${keyword} — ${headline}. ${firstNews.title}`
@@ -98,9 +96,13 @@ export default async function KeywordPage({ params }: KeywordPageProps) {
   // 서버에서 캐시와 함께 조회한다. 키가 없거나 호출이 실패하면 null이고 차트는 생략된다.
   const trend = await getKeywordTrend(title)
 
+  // 순위 기록(DB)과 30일 추이(네이버)를 문장으로 풀어 쓴다. 검색어마다 달라지는 고유한 설명이다.
+  const rankedMinutes = record ? await getKeywordRankedMinutes(title) : null
+  const insight = buildKeywordInsight({ keyword: title, topic, record, rankedMinutes, trend })
+  const lastSeenDateKey = record ? toKstDateKey(record.lastSeenAt) : null
+
   // 같은 요청 내 fetch라 Next.js가 getTrendingTopicByKeyword의 조회와 중복 호출을 합쳐준다.
-  const topics = await getTrendingTopics()
-  const fetchedAt = new Date().toISOString()
+  const { topics, fetchedAt } = await getTrendingSnapshot()
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
@@ -142,7 +144,7 @@ export default async function KeywordPage({ params }: KeywordPageProps) {
                 )}
                 {!topic && (
                   <span className="text-[12px] text-muted-foreground">
-                    · {formatSeenAt(record!.lastSeenAt)}까지 순위권
+                    · {formatKstDate(record!.lastSeenAt)}까지 순위권
                   </span>
                 )}
               </div>
@@ -164,6 +166,18 @@ export default async function KeywordPage({ params }: KeywordPageProps) {
           </header>
 
           <AdSlot format="leaderboard" />
+
+          <KeywordInsight
+            insight={insight}
+            daily={
+              lastSeenDateKey
+                ? {
+                    href: `/daily/${lastSeenDateKey}`,
+                    label: `${formatDateKey(lastSeenDateKey)} 실시간 검색어 기록 보기`,
+                  }
+                : undefined
+            }
+          />
 
           {trend && <KeywordTrendChart data={trend} />}
 

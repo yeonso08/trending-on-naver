@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 
-import { getTrendingTopics } from '@/entities/trending/api/get-trending-topics'
+import { getTrendingSnapshot } from '@/entities/trending/api/get-trending-topics'
 import { SITE } from '@/shared/config/site'
 import { AdSlot } from '@/shared/ui/ad-slot'
 import { TrendingSearches } from '@/widgets/trending-searches/ui/trending-searches'
@@ -14,8 +14,7 @@ export const metadata: Metadata = {
 }
 
 export default async function AnalysisPage() {
-  const topics = await getTrendingTopics()
-  const fetchedAt = new Date().toISOString()
+  const { topics, fetchedAt } = await getTrendingSnapshot()
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">

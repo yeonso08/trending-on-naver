@@ -14,5 +14,6 @@ export const SITE = {
 export const NAV_LINKS = [
   { href: '/', label: '실시간 순위' },
   { href: '/analysis', label: '트렌드 분석' },
+  { href: '/daily', label: '날짜별 기록' },
   { href: '/about', label: '소개' },
 ] as const
