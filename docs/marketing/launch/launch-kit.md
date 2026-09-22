@@ -333,5 +333,5 @@ https://keywi.kr/daily?utm_source=threads&utm_medium=social&utm_campaign=launch&
 
 - 서비스 현황: https://keywi.kr/ (2026-09-15 확인)
 - 실제 분석 UI 및 지표 설명: https://keywi.kr/analysis (2026-09-15 확인)
-- 저장소 docs/PROGRESS.md: 날짜별 기록·인사이트 제공 현황
+- 저장소 docs/HISTORY.md: 날짜별 기록·인사이트 제공 과정
 - 데이터랩 해설 원고: content/articles/datalab-search-ratio-100.md
