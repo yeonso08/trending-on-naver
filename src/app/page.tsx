@@ -14,9 +14,8 @@ import { JsonLd } from '@/shared/ui/json-ld'
 import { TrendingSearches } from '@/widgets/trending-searches/ui/trending-searches'
 
 /**
- * ISR(stale-while-revalidate)은 갱신이 뜸하면 첫 방문자에게 몇 시간 묵은 순위를 준다.
- * 요청마다 렌더하되, getTrendingTopics()의 fetch는 revalidate: 60을 명시하고 있어
- * force-dynamic에서도 데이터 캐시를 타므로 구글 RSS 호출은 1분에 한 번으로 묶인다.
+ * 요청마다 렌더한다. 구글 RSS 호출은 getTrendingSnapshot()의 메모리 캐시(30초)가 묶는다.
+ * 메모리 캐시가 맞으면 fetch가 없어 Next.js가 동적 렌더를 감지하지 못하므로 명시가 필수다.
  */
 export const dynamic = 'force-dynamic'
 

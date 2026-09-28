@@ -8,8 +8,11 @@ import { buildBreadcrumbSchema, buildGraph } from '@/shared/model/structured-dat
 import { JsonLd } from '@/shared/ui/json-ld'
 import { TrendingSidebarLayout } from '@/widgets/trending-searches/ui/trending-sidebar-layout'
 
-/** 오늘 날짜가 새로 생기는 걸 반영하는 주기 */
-export const revalidate = 600
+/**
+ * 사이드바의 실시간 순위 때문에 요청마다 렌더한다. ISR로 두면 재생성마다 ISR Writes가 쌓여
+ * Hobby 한도를 넘긴다(2026-09-28). getTrendingSnapshot() 주석 참고.
+ */
+export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
   title: '날짜별 실시간 검색어 기록',
