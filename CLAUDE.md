@@ -154,13 +154,13 @@ NEXT_PUBLIC_ADSENSE_CLIENT=ca-pub-0000000000000000
 ```
 src/
   app/        Next.js App Router
-    /                    실시간 검색어 순위 (ISR 60초)
+    /                    실시간 검색어 순위 (요청마다 렌더)
     /analysis            검색어 트렌드 분석 (데이터랩)
-    /keyword/[keyword]   검색어 상세 — 기록 해석 문장 + 관련 뉴스 + 30일 추이 (SSG)
-    /daily               날짜별 기록 목록 (ISR — 사이드바 순위 fetch 때문에 실제 1분)
-    /daily/[date]        하루 동안 순위에 오른 검색어 — 요약 문장 + 최고 순위·체류 시간 (ISR 1분)
-    /articles            인사이트(직접 쓴 글) 목록 (ISR 1분). 글이 없으면 noindex
-    /articles/[slug]     글 상세 (SSG + ISR 1분, dynamicParams=false — 없는 주소는 진짜 404)
+    /keyword/[keyword]   검색어 상세 — 기록 해석 문장 + 관련 뉴스 + 30일 추이 (요청마다 렌더)
+    /daily               날짜별 기록 목록 (요청마다 렌더)
+    /daily/[date]        하루 동안 순위에 오른 검색어 — 요약 문장 + 최고 순위·체류 시간 (요청마다 렌더)
+    /articles            인사이트(직접 쓴 글) 목록 (빌드 때 한 번, force-static). 글이 없으면 noindex
+    /articles/[slug]     글 상세 (SSG·재생성 없음, dynamicParams=false — 없는 주소는 진짜 404)
     /about /privacy /terms   정적 문서 (AdSense 심사에 필요)
     sitemap.ts robots.ts     SEO
     api/trends           네이버 데이터랩 프록시 (POST)
@@ -183,7 +183,7 @@ content/
 
 ### 데이터 흐름
 
-- **실시간 검색어**: `entities/trending/api/get-trending-topics.ts`가 구글 RSS를 fetch → `fast-xml-parser`로 파싱. 목록과 업데이트 시각이 함께 필요하면 `getTrendingSnapshot()`(`{ topics, fetchedAt }`), 목록만이면 `getTrendingTopics()`. `next: { revalidate: 60 }`으로 1분 데이터 캐시. 페이지가 아니라 이 모듈이 유일한 진입점이므로 새 화면에서도 여기를 쓴다.
+- **실시간 검색어**: `entities/trending/api/get-trending-topics.ts`가 구글 RSS를 fetch → `fast-xml-parser`로 파싱. 목록과 업데이트 시각이 함께 필요하면 `getTrendingSnapshot()`(`{ topics, fetchedAt }`), 목록만이면 `getTrendingTopics()`. fetch는 `cache: 'no-store'`이고 모듈 메모리에 30초 캐시한다(아래 "ISR Writes 한도" 참고). 페이지가 아니라 이 모듈이 유일한 진입점이므로 새 화면에서도 여기를 쓴다.
 - **기록 해석·날짜별 기록**: `entities/trending/api/keyword-archive.ts`(`getKeywordRankedMinutes`, `getDailyRanking`, `listArchiveDates`)가 스냅샷을 구간으로 펼쳐 체류 시간을 계산한다. 스냅샷 하나는 다음 스냅샷까지 유효하되 `checked_at + 2분`에서 끊는다(수집이 멈춘 구간을 순위권으로 치지 않게). 문장은 `features/keyword-detail/model/build-keyword-insight.ts`가 만든다. 날짜 경계는 KST, 포맷 유틸은 `shared/lib/format.ts`.
 - RSS는 제목·시각 외에 **검색량(`ht:approx_traffic`), 썸네일, 관련 뉴스 목록**까지 준다. 상세 페이지 콘텐츠가 전부 여기서 나온다.
 - **글**: `entities/article/api/get-articles.ts`가 `content/articles/*.md`를 읽어 `gray-matter`로 frontmatter(`title`·`description`·`date` 필수)를 검사하고 `marked`로 HTML을 만든다. 형식 오류는 파일 이름과 함께 던져 **빌드를 멈춘다**. `draft: true`는 `NODE_ENV !== 'production'`에서만 보인다.
@@ -197,21 +197,36 @@ content/
   - 마이그레이션은 Supabase CLI 없이 SQL Editor(또는 `POSTGRES_URL_NON_POOLING`)로 적용한다. `002`의 토큰은 파일에 적지 말고 Vault(`keywi_cron_secret`)에 둔다.
 - **트렌드 분석**: `TrendsDashboard`(클라이언트) → `POST /api/trends` → 서버에서 네이버 API 호출. 클라이언트에 API 키가 노출되지 않도록 반드시 라우트 핸들러 경유.
 
-#### 실시간 검색어를 실제로 최신으로 유지하는 두 축
+#### 실시간 검색어 캐시와 ISR Writes 한도
 
-ISR의 `revalidate`는 "주기마다 자동 갱신"이 아니라 **stale-while-revalidate**입니다. 시간이 지난 뒤 _누군가 요청해야_ 백그라운드 재생성이 시작되고, 그 요청자에게는 여전히 옛 캐시가 나갑니다. 방문자가 뜸하면 캐시가 몇 시간씩 정체됩니다(실측 `age: 2333` / `x-vercel-cache: STALE`). 그래서 두 가지를 함께 씁니다.
+⚠️ **Vercel은 ISR 재생성과 fetch 데이터 캐시 쓰기를 모두 ISR Writes(8KB 단위)로 셉니다. Hobby 한도는 월 20만입니다.**
+예전에는 RSS fetch에 `revalidate: 60`을 걸어 데이터 캐시를 썼고, 사이드바가 붙은 페이지들이 그 때문에 1분 주기 ISR로
+돌았습니다. 1분 수집(RSS 약 20KB = 3 units × 1,440회/일)과 페이지 재생성만으로 **월 약 32만 units를 써서 한도를
+넘겼습니다**(2026-09-28, 12시간에 5.4K units 실측). 방문자 수와 무관하게 나가는 비용입니다. 그래서 지금은 이렇게 합니다.
 
-1. **홈(`/`)은 `dynamic = 'force-dynamic'`으로 요청마다 렌더합니다.** fetch에 `revalidate: 60`을 명시해 두었으므로 force-dynamic이어도 데이터 캐시는 유지됩니다(Next 15 `patch-fetch.js` — 명시 설정이 없을 때만 캐시를 끔). 방문자가 늘어도 구글 RSS 호출은 1분에 한 번입니다. **fetch의 `revalidate`를 지우면 요청마다 구글을 때리게 되니 주의하세요.**
-2. **`TrendingSearches`의 클라이언트 갱신** — 마운트 즉시 한 번, 이후 60초마다 `GET /api/trending`을 호출합니다. ISR로 캐시된 상세 페이지의 사이드바나 뒤로 가기로 복원된 화면도 곧바로 최신이 되고, 열어 둔 탭은 새로고침 없이 갱신됩니다. 탭이 백그라운드면(`document.hidden`) 건너뛰고, 다시 보이면 즉시 한 번 갱신합니다.
+1. **RSS는 데이터 캐시에 넣지 않습니다.** `getTrendingSnapshot()`이 `cache: 'no-store'`로 받아 모듈 메모리에 30초
+   들고 있고, 동시 요청은 진행 중인 조회 하나를 함께 기다립니다. 메모리는 과금되지 않고 Fluid Compute가 인스턴스를
+   재사용하므로 구글 호출도 묶입니다. **`revalidate`를 다시 붙이지 마세요.**
+2. **RSS를 읽는 라우트는 `dynamic = 'force-dynamic'`을 명시합니다**(홈, `/analysis`, `/keyword/*`와 그 OG 이미지,
+   `/daily/*`, 사이트맵, `/api/trending`, `/api/collect`). 메모리 캐시가 맞으면 fetch가 없어서 Next가 동적 렌더를
+   감지하지 못합니다. 빠뜨리면 빌드 때 정적으로 굳거나 ISR로 잡힙니다. 새 라우트를 추가할 때도 마찬가지입니다.
+3. **예외로 `/articles`와 `/articles/[slug]`는 `force-static`입니다.** 글은 배포 때만 바뀌므로 빌드 때 한 번 만들고
+   다시 만들지 않습니다. 사이드바 순위는 빌드 시점 값으로 그려지고 아래 4번이 곧바로 최신으로 바꿉니다.
+4. **`TrendingSearches`의 클라이언트 갱신** — 마운트 즉시 한 번, 이후 60초마다 `GET /api/trending`을 호출합니다.
+   정적 페이지의 사이드바나 뒤로 가기로 복원된 화면도 곧바로 최신이 되고, 열어 둔 탭은 새로고침 없이 갱신됩니다.
+   탭이 백그라운드면(`document.hidden`) 건너뛰고, 다시 보이면 즉시 한 번 갱신합니다.
 
-⚠️ **fetch 데이터 캐시도 stale-while-revalidate입니다.** 60초가 지난 항목을 읽으면 _옛 응답을 먼저 돌려주고_ 뒤에서 새로 받습니다(Next 15 `patch-fetch.js`의 `entry.isStale` 분기). 그래서 화면 지연은 "마지막으로 누가 데이터를 가져간 시각"에 달려 있고, 방문자가 뜸할 때는 **1분마다 도는 `/api/collect`가 사실상 캐시를 데우는 역할**을 합니다. 수집 주기를 늘리면 화면 지연도 같이 늘어납니다(5분 주기일 때 최대 약 5분 늦음을 실측).
+동적 렌더라서 상세·날짜별 페이지는 **Supabase가 멈추면 같이 멈춥니다**(캐시된 옛 페이지로 버틸 수 없음). 대신 순위는
+최대 30초 안쪽으로 최신입니다. ISR로 되돌리고 싶다면 주기를 1분이 아니라 시간 단위로 잡고 ISR Writes를 먼저 계산하세요.
+
+`getKeywordTrend`의 `unstable_cache`(TTL 6시간)도 ISR Writes를 쓰지만 검색어당 하루 4회라 비중이 작습니다.
 
 구글 RSS 자체는 **약 10분마다 목록을 바꾸고 1\~2분 뒤 순위·검색량을 한 번 더 고치는 일이 잦습니다**(2026-09-14, 30초 간격 25분 실측: 09:35 → 09:43 → 09:44 보정 → 09:53 → 09:55 보정).
 
 ⚠️ **GitHub Actions 예약 작업으로 캐시를 데우는 방식은 쓰지 마세요.** 예전에 `*/10`으로 홈페이지를 `curl`했지만 GitHub가 무료 예약 작업을 부하에 따라 미뤄 실제로는 2\~5시간에 한 번 돌았습니다(2026-09-14 실행 기록으로 확인). 정확한 주기가 필요한 작업은 Supabase `pg_cron`으로 돌립니다.
 
-- 화면의 "○○ 업데이트"는 **구글이 그 목록을 응답한 시각(`fetchedAt`, 응답의 `Date` 헤더)**입니다. 캐시된 응답도 원래 헤더를 보존하므로 캐시를 거쳐도 실제 데이터 시각이 나옵니다. **렌더 시각(`new Date()`)을 쓰지 마세요** — 위의 stale-while-revalidate 때문에 실제보다 몇 분 새것처럼 보입니다. RSS의 `pubDate`(그 검색어가 트렌드에 오른 시각)도 아닙니다.
-- `TrendingSearches`는 `compact` prop이 있습니다. 300px 사이드바(`/analysis`, `/keyword/[keyword]`, `/daily`, `/daily/[date]`, `/articles`, `/articles/[slug]`)에서는 켜서 썸네일과 인피드 광고를 뺍니다. 뒤의 네 페이지는 `widgets/trending-searches/ui/trending-sidebar-layout.tsx`(`TrendingSidebarLayout`)로 감쌉니다. 사이드바가 `revalidate: 60` fetch를 하므로 **그 페이지들의 ISR 주기도 1분으로 짧아집니다**(Next는 페이지 설정과 fetch 중 가장 짧은 값을 씀).
+- 화면의 "○○ 업데이트"는 **구글이 그 목록을 응답한 시각(`fetchedAt`, 응답의 `Date` 헤더)**입니다. **렌더 시각(`new Date()`)을 쓰지 마세요** — 메모리 캐시에서 꺼낸 목록은 렌더 시각보다 최대 30초 묵어 있습니다. RSS의 `pubDate`(그 검색어가 트렌드에 오른 시각)도 아닙니다.
+- `TrendingSearches`는 `compact` prop이 있습니다. 300px 사이드바(`/analysis`, `/keyword/[keyword]`, `/daily`, `/daily/[date]`, `/articles`, `/articles/[slug]`)에서는 켜서 썸네일과 인피드 광고를 뺍니다. 뒤의 네 페이지는 `widgets/trending-searches/ui/trending-sidebar-layout.tsx`(`TrendingSidebarLayout`)로 감쌉니다.
 - 헤더 메뉴는 실시간 순위·트렌드 분석·날짜별 기록·인사이트 네 개입니다. 서비스 소개(`/about`)는 푸터에서만 링크합니다.
 
 ## 코드 스타일
@@ -227,7 +242,7 @@ ISR의 `revalidate`는 "주기마다 자동 갱신"이 아니라 **stale-while-r
 1. **파일명은 kebab-case입니다.** 대부분 정리됐습니다(`trend-chart.tsx`, `search-form.tsx`, `trends-dashboard.tsx`). 남은 PascalCase가 보이면 손대는 김에 함께 바꾸세요.
 2. **날짜·시각을 화면에 찍을 때는 `timeZone: 'Asia/Seoul'`을 반드시 명시하세요.** 서버(Vercel 서버리스)는 UTC로 돌기 때문에 타임존 없이 `Intl.DateTimeFormat`을 쓰면 9시간 어긋난 시각이 나갑니다. 로컬(KST)에서는 멀쩡해 보여서 발견이 어렵습니다.
 3. **`/keyword/[keyword]`는 한 번이라도 순위권에 오른 검색어를 렌더합니다.** 지금 순위권이면 RSS, 아니면 Supabase의 `keywords` 기록("최고 N위 · 날짜까지 순위권")을 씁니다. 이력은 2026-09-14 수집 시작 이후만 있으므로 그 전에 내려간 검색어는 not-found입니다.
-4. **한 번도 순위에 오르지 않은 검색어는 soft 404입니다.** `notFound()`를 호출하지만 ISR 캐시를 거치면서 HTTP 상태가 200으로 나갑니다(Next.js의 알려진 동작). `generateMetadata`가 `noindex, nofollow`를 붙이므로 색인되지는 않습니다. `dynamicParams = false`로 바꾸면 진짜 404가 되지만, 그러면 빌드 이후 새로 뜬 검색어가 전부 404가 되므로 쓰면 안 됩니다.
+4. **한 번도 순위에 오르지 않은 검색어는 soft 404입니다.** `notFound()`를 호출하지만 루트 `loading.tsx` 때문에 스트리밍이 먼저 시작돼 HTTP 상태가 200으로 나갑니다(Next.js의 알려진 동작). `generateMetadata`가 `noindex, nofollow`를 붙이므로 색인되지는 않습니다. `dynamicParams = false`로 바꾸면 진짜 404가 되지만, 그러면 빌드 이후 새로 뜬 검색어가 전부 404가 되므로 쓰면 안 됩니다.
 5. **`AdSlot`은 설정이 없으면 아무것도 렌더하지 않습니다.** 예전에는 점선 자리표시자를 그렸는데 그대로 배포되면 미완성으로 보여서 걷어냈습니다. `NEXT_PUBLIC_ADSENSE_CLIENT`와 해당 지면의 `ADSENSE_SLOTS` 값이 **둘 다** 있어야 지면이 나옵니다. 지면 크기는 미리 잡아 두었으므로 광고가 들어와도 레이아웃 시프트가 없습니다.
 6. **`/ads.txt`는 정적 파일이 아니라 라우트입니다.** 게시자 ID에서 만들어 내므로 `public/`에 같은 이름의 파일을 두지 마세요 — 충돌합니다. ID가 없으면 404를 반환합니다.
 7. **AdSense 스크립트를 `next/script`로 바꾸지 마세요.** `afterInteractive` 전략은 `<head>`에 preload 링크만 남기고 실제 `<script>`를 하이드레이션 후 JS로 주입합니다. 구글은 스니펫을 `<head>`에 두라고 안내하고, JS를 실행하지 않는 크롤러는 그 태그를 보지 못합니다. `layout.tsx`에서 평범한 `<script>`로 직접 찍습니다.

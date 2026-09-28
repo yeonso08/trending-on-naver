@@ -19,6 +19,13 @@ interface ArticlePageProps {
   params: Promise<{ slug: string }>
 }
 
+/**
+ * 글은 배포할 때만 바뀌므로 빌드 때 한 번 만들고 다시 만들지 않는다(재생성마다 ISR Writes가
+ * 쌓여 Hobby 한도를 넘긴 적이 있다, 2026-09-28). 사이드바 순위는 빌드 시점 값으로 그려지고
+ * TrendingSearches가 마운트 즉시 최신으로 바꾼다.
+ */
+export const dynamic = 'force-static'
+
 /** 글은 레포의 파일이라 빌드 시점에 전부 알 수 있다. 없는 주소는 진짜 404를 낸다. */
 export const dynamicParams = false
 

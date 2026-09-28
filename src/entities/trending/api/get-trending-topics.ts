@@ -3,7 +3,12 @@ import { XMLParser } from 'fast-xml-parser'
 import type { TrendingNewsItem, TrendingTopic } from '@/entities/trending/model/types'
 
 const TRENDS_RSS_URL = 'https://trends.google.co.kr/trending/rss?geo=KR'
-const REVALIDATE_SECONDS = 60
+/**
+ * 받은 목록을 서버 인스턴스 메모리에 들고 있는 시간. Vercel 데이터 캐시(fetch revalidate)는
+ * 쓰기마다 ISR Writes로 과금돼 1분 수집만으로 Hobby 한도(월 20만)를 넘겼다(2026-09-28).
+ * 메모리는 과금되지 않고, Fluid Compute가 인스턴스를 재사용하므로 구글 호출도 묶인다.
+ */
+const MEMORY_TTL_MS = 30_000
 /** 빌드가 서드파티 응답을 무한정 기다리지 않도록 상한을 둔다 */
 const REQUEST_TIMEOUT_MS = 10_000
 
@@ -49,14 +54,31 @@ function mapNewsItem(raw: RawNewsItem): TrendingNewsItem | null {
   }
 }
 
+let memory: { snapshot: TrendingSnapshot; storedAt: number } | undefined
+/** 동시에 들어온 요청이 구글을 여러 번 부르지 않게 진행 중인 조회를 함께 기다린다 */
+let pending: Promise<TrendingSnapshot> | undefined
+
 /**
- * 구글 RSS는 서드파티 의존이고 빌드는 미국 리전에서 돈다. 여기서 예외를 던지면
- * 프리렌더 단계가 통째로 실패해 배포 자체가 깨진다. 조회 실패는 빈 배열로 처리하고
- * 호출부가 빈 목록을 다루게 한다. ISR이 다음 주기에 다시 시도한다.
+ * 메모리 캐시가 맞으면 fetch를 호출하지 않으므로 Next.js가 동적 렌더를 감지하지 못한다.
+ * 이 함수를 쓰는 라우트는 `dynamic = 'force-dynamic'`을 명시해야 한다 — 빠뜨리면 빌드 때
+ * 정적으로 굳거나 ISR로 잡혀 다시 ISR Writes를 쓴다.
+ *
+ * 구글 RSS는 서드파티 의존이다. 조회 실패는 빈 배열로 처리하고 호출부가 빈 목록을 다루게 한다.
  */
 export async function getTrendingSnapshot(): Promise<TrendingSnapshot> {
+  if (memory && Date.now() - memory.storedAt < MEMORY_TTL_MS) return memory.snapshot
+
+  pending ??= fetchTrendingSnapshot()
+    .then((snapshot) => {
+      memory = { snapshot, storedAt: Date.now() }
+      return snapshot
+    })
+    .finally(() => {
+      pending = undefined
+    })
+
   try {
-    return await fetchTrendingSnapshot()
+    return await pending
   } catch (error) {
     console.error('실시간 검색어 조회 실패:', error)
     return { topics: [], fetchedAt: new Date().toISOString() }
@@ -71,13 +93,13 @@ export interface TrendingSnapshot {
   topics: TrendingTopic[]
   /**
    * 구글이 이 목록을 응답한 시각 (ISO). 화면의 "○○ 업데이트"에 쓴다.
-   * 렌더 시각(new Date())을 쓰면 안 된다 — 데이터 캐시는 만료된 응답을 먼저 내주고 뒤에서
-   * 갱신하므로(stale-while-revalidate), 렌더 시각은 실제 데이터보다 몇 분 새것처럼 보인다.
+   * 렌더 시각(new Date())을 쓰면 안 된다 — 메모리 캐시에서 꺼낸 목록은 렌더 시각보다 최대
+   * MEMORY_TTL_MS만큼 묵어 있다.
    */
   fetchedAt: string
 }
 
-/** 캐시된 fetch 응답도 원래 헤더를 그대로 보존하므로 Date 헤더가 곧 구글 응답 시각이다. */
+/** Date 헤더가 곧 구글 응답 시각이다. */
 function resolveFetchedAt(response: Response): string {
   const date = new Date(response.headers.get('date') ?? Date.now())
   return Number.isNaN(date.getTime()) ? new Date().toISOString() : date.toISOString()
@@ -90,7 +112,8 @@ async function fetchTrendingSnapshot(): Promise<TrendingSnapshot> {
       'Accept-Language': 'ko-KR,ko;q=0.9',
     },
     signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-    next: { revalidate: REVALIDATE_SECONDS },
+    // 데이터 캐시에 넣지 않는다. 캐시는 위의 메모리가 맡는다(MEMORY_TTL_MS 참고)
+    cache: 'no-store',
   })
 
   if (!response.ok) {

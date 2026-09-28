@@ -11,6 +11,9 @@ import {
   OG_SIZE,
 } from '@/shared/model/og'
 
+/** 페이지와 같은 이유로 요청마다 그린다(page.tsx 참고) */
+export const dynamic = 'force-dynamic'
+
 export const alt = '실시간 검색어 상세'
 export const size = OG_SIZE
 export const contentType = OG_CONTENT_TYPE

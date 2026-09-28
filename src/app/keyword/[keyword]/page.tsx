@@ -7,7 +7,6 @@ import {
   buildNaverSearchUrl,
   getTrendingSnapshot,
   getTrendingTopicByKeyword,
-  getTrendingTopics,
 } from '@/entities/trending/api/get-trending-topics'
 import { getKeywordRankedMinutes } from '@/entities/trending/api/keyword-archive'
 import { getKeywordRecord } from '@/entities/trending/api/keyword-history'
@@ -27,13 +26,11 @@ interface KeywordPageProps {
   params: Promise<{ keyword: string }>
 }
 
-/** 현재 순위권 검색어는 미리 만들어 둔다. 목록은 1분마다 갱신된다. */
-export async function generateStaticParams() {
-  const topics = await getTrendingTopics()
-  // Next.js가 URL 인코딩을 담당한다. 이미 encodeURIComponent된 slug를 넘기면
-  // 이중 인코딩되어 렌더 시점에 디코딩해도 원본과 매칭되지 않는다.
-  return topics.map((topic) => ({ keyword: topic.title }))
-}
+/**
+ * 사이드바의 실시간 순위 때문에 요청마다 렌더한다. ISR로 두면 재생성마다 ISR Writes가 쌓여
+ * Hobby 한도를 넘긴다(2026-09-28). getTrendingSnapshot() 주석 참고.
+ */
+export const dynamic = 'force-dynamic'
 
 /**
  * 지금 순위권이면 실시간 데이터를, 순위에서 내려갔으면 DB에 쌓인 기록을 쓴다.
@@ -101,7 +98,7 @@ export default async function KeywordPage({ params }: KeywordPageProps) {
   const insight = buildKeywordInsight({ keyword: title, topic, record, rankedMinutes, trend })
   const lastSeenDateKey = record ? toKstDateKey(record.lastSeenAt) : null
 
-  // 같은 요청 내 fetch라 Next.js가 getTrendingTopicByKeyword의 조회와 중복 호출을 합쳐준다.
+  // getTrendingTopicByKeyword와 같은 목록이다. 메모리 캐시가 중복 호출을 막는다.
   const { topics, fetchedAt } = await getTrendingSnapshot()
 
   return (

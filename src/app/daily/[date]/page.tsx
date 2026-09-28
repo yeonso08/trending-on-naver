@@ -16,13 +16,11 @@ interface DailyPageProps {
   params: Promise<{ date: string }>
 }
 
-/** 오늘 기록은 계속 늘어난다. 지난 날짜도 같은 주기로 두어도 DB 부담은 작다. */
-export const revalidate = 600
-
-/** 빌드 시점엔 만들지 않고 첫 요청 때 생성해 캐시한다 (ISR) */
-export async function generateStaticParams() {
-  return []
-}
+/**
+ * 사이드바의 실시간 순위 때문에 요청마다 렌더한다. ISR로 두면 재생성마다 ISR Writes가 쌓여
+ * Hobby 한도를 넘긴다(2026-09-28). getTrendingSnapshot() 주석 참고.
+ */
+export const dynamic = 'force-dynamic'
 
 /** 목록만 두면 외부 데이터 나열에 그친다. 그날의 기록을 문장으로 요약해 앞에 둔다. */
 function summarize(dateKey: string, keywords: DailyKeyword[]): string[] {

@@ -6,6 +6,9 @@ import { getTrendingTopics } from '@/entities/trending/api/get-trending-topics'
 import { listRecordedKeywords } from '@/entities/trending/api/keyword-history'
 import { SITE } from '@/shared/config/site'
 
+/** 실시간 순위를 읽으므로 요청마다 만든다. 정적으로 두면 빌드 시점 목록에 굳는다. */
+export const dynamic = 'force-dynamic'
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: SITE.url, changeFrequency: 'hourly', priority: 1 },

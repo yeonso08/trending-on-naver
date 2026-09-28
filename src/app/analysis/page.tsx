@@ -6,6 +6,12 @@ import { AdSlot } from '@/shared/ui/ad-slot'
 import { TrendingSearches } from '@/widgets/trending-searches/ui/trending-searches'
 import { TrendsDashboard } from '@/widgets/trends-dashboard/ui/trends-dashboard'
 
+/**
+ * 실시간 순위 때문에 요청마다 렌더한다. ISR로 두면 재생성마다 ISR Writes가 쌓여
+ * Hobby 한도를 넘긴다(2026-09-28). getTrendingSnapshot() 주석 참고.
+ */
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: '검색어 트렌드 분석',
   description:
