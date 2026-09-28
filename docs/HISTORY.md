@@ -434,6 +434,13 @@ AdSense 재신청을 위해 **키위의 기록과 해설을 담은 글**을 올�
 - **2026-09-15:** Search Console 요청 URL 12개 중 11개 색인을 확인하고 AdSense 재심사를 요청했습니다.
 - **2026-09-22:** 9월 14~20일 첫 주간 리포트를 게시했습니다 ([PR #22](https://github.com/yeonso08/trending-on-naver/pull/22)). 기존 인사이트 글 9편은 추가 의견 없이 유지하기로 했습니다.
 - **2026-09-28:** 9월 21~27일 주간 순위 기록을 집계해 두 번째 리포트 `weekly-trending-2026-09-21`을 게시했습니다. 1,102개 스냅샷과 698개 검색어를 바탕으로 집계하고, 사건 설명은 공식 일정·공지와 대조했습니다. 로컬의 무시된 `pnpm-workspace.yaml`이 Vercel pnpm 9 배포를 막아 `.vercelignore`에 제외 항목을 추가했습니다. 배포 완료 후 글 URL의 HTTP 200과 제목을 확인했습니다.
+- **2026-09-28:** Vercel Hobby의 ISR Writes가 월 한도(20만)를 넘었습니다(216K). 12시간에 5.4K units를
+  쓰고 있었는데, 1분 수집이 RSS(약 20KB)를 데이터 캐시에 쓰는 몫과 사이드바 때문에 1분 주기로 재생성되던
+  페이지 몫이 반씩이었습니다. RSS를 `cache: 'no-store'` + 모듈 메모리 30초 캐시로 바꾸고, RSS를 읽는 라우트는
+  `force-dynamic`, 글 페이지는 `force-static`으로 돌렸습니다([PR #25](https://github.com/yeonso08/trending-on-naver/pull/25)).
+  배포 후 `/daily`가 `no-store`로 나가고 `/articles/nope`가 404인 것을 확인했습니다. 자세한 규칙은 CLAUDE.md의
+  "실시간 검색어 캐시와 ISR Writes 한도" 절에 있습니다.
+- **2026-09-28:** AGENTS.md를 CLAUDE.md로 합치고 삭제했습니다. AGENTS.md에만 있던 홍보 담당 역할 절을 옮겼습니다.
 - **2026-09-22:** 진행 문서의 완료 기록을 이 파일로 분리했습니다.
 
 ## 분리 당시의 기술 메모
@@ -450,4 +457,4 @@ AdSense 재신청을 위해 **키위의 기록과 해설을 담은 글**을 올�
 - 정확한 주기가 필요한 작업에 GitHub Actions 스케줄을 쓰지 않습니다. 실측 10분 간격 설정이
   2~5시간 늦게 실행되어 삭제했고, 수집은 Supabase `pg_cron`으로 옮겼습니다.
 
-위 내용은 분리 당시 기록입니다. 현재 작업 규칙은 [AGENTS.md](../AGENTS.md)를 확인하세요.
+위 내용은 분리 당시 기록입니다. 현재 작업 규칙은 [CLAUDE.md](../CLAUDE.md)를 확인하세요.
