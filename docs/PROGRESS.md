@@ -16,10 +16,10 @@
 
 ## 다음에 할 일
 
-1. **AdSense 결과 기다리기 — 사용자.** 결과가 나오면 Codex에게 알려 주세요. 승인되면
+1. **AdSense 결과 기다리기 — 사용자.** 결과가 나오면 Claude에게 알려 주세요. 승인되면
    AdSense 콘솔에서 광고 단위 3개(`leaderboard`, `rectangle`, `in-feed`)를 만들고 슬롯 ID를
    `shared/config/adsense.ts`에 연결합니다. 재반려되면 사유를 확인해 대응합니다.
-2. **다음 주간 리포트 — Codex.** 10월 5일(월)에 9월 28일 ~ 10월 4일의 월요일 ~ 일요일
+2. **다음 주간 리포트 — Claude.** 10월 5일(월)에 9월 28일 ~ 10월 4일의 월요일 ~ 일요일
    순위 기록을 집계하고, 관련 근거를 확인해 작성·게시합니다.
 3. **ISR Writes 감소 확인 — 사용자.** 9월 29일쯤 Vercel Observability → ISR에서
    `trending-on-naver`의 Writes가 거의 0으로 줄었는지 봅니다(수정 전 12시간에 1.7K회, 5.4K units).
