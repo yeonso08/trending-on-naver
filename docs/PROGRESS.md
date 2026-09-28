@@ -21,7 +21,10 @@
    `shared/config/adsense.ts`에 연결합니다. 재반려되면 사유를 확인해 대응합니다.
 2. **다음 주간 리포트 — Codex.** 10월 5일(월)에 9월 28일 ~ 10월 4일의 월요일 ~ 일요일
    순위 기록을 집계하고, 관련 근거를 확인해 작성·게시합니다.
-3. **색인 재확인.** `/articles/datalab-gender-age-filters`가 9월 15일 기준 12개 요청 URL 중
+3. **ISR Writes 감소 확인 — 사용자.** 9월 29일쯤 Vercel Observability → ISR에서
+   `trending-on-naver`의 Writes가 거의 0으로 줄었는지 봅니다(수정 전 12시간에 1.7K회, 5.4K units).
+   9월 28일 한도 초과(216K / 200K)에 대한 Vercel 안내 메일도 확인합니다.
+4. **색인 재확인.** `/articles/datalab-gender-age-filters`가 9월 15일 기준 12개 요청 URL 중
    유일하게 색인 대기 중이었습니다. 계속 안 되면 Search Console에서 색인 생성을 다시 요청합니다.
 
 ## 이후 콘텐츠 후보
@@ -36,7 +39,7 @@
   월요일~일요일 기준으로 집계하고, 검색어가 오른 이유는 출처를 확인해 서술합니다.
 - `.agents/`, `.claude/`, `skills-lock.json`은 기존의 미추적 로컬 파일입니다. 커밋 또는
   `.gitignore` 처리 여부는 아직 정하지 않았으므로 임의로 건드리지 않습니다.
-- 작업·배포 규칙은 [AGENTS.md](../AGENTS.md), 과거 결정과 문제 해결 과정은
+- 작업·배포 규칙은 [CLAUDE.md](../CLAUDE.md), 과거 결정과 문제 해결 과정은
   [HISTORY.md](HISTORY.md)에 있습니다.
 
 완료된 항목은 여기서 길게 누적하지 않고 작업 기록으로 옮깁니다.
