@@ -191,7 +191,7 @@ content/
   - ⚠️ 헤더가 레이아웃에 있어 **동적 라우트(홈 등)도 런타임에 글 폴더를 읽는다.** `next.config.ts`의 `outputFileTracingIncludes`로 `content/articles/**`를 번들에 넣었다. 빠지면 배포본에서만 '인사이트' 메뉴가 사라진다.
   - 글은 레포에 커밋되는 신뢰된 원본이라 HTML을 새니타이즈하지 않는다. 외부 입력을 이 경로로 넣지 말 것.
   - ⚠️ 마크다운 본문의 물결표는 숫자 사이든 글자 사이든(`1\~2분`, `중순\~11월`) 모두 이스케이프한다. 한 줄에 `~`가 두 개면 Prettier가 GFM 취소선으로 보고 `~~`로 바꿔 사이 글자에 취소선이 그어진다(2026-09-14 실제로 발생). frontmatter는 평문으로 찍히므로 이스케이프하지 않는다.
-- **검색어 이력**: Supabase `pg_cron` → `POST /api/collect` → `entities/trending/api/keyword-history.ts`의 `recordSnapshot`이 Supabase Postgres에 기록. 스키마는 `db/migrations/`(001 테이블, 002 cron). `/keyword/[keyword]`·OG 이미지·사이트맵은 순위권이 아니면 `getKeywordRecord`/`listRecordedKeywords`로 DB 기록을 읽는다. DB 클라이언트는 `shared/api/db.ts`(`postgres` 드라이버, 서버 전용).
+- **검색어 이력**: Supabase `pg_cron` → `POST /api/collect` → `entities/trending/api/keyword-history.ts`의 `recordSnapshot`이 Supabase Postgres에 기록. 스키마는 `db/migrations/`(001 테이블, 002 수집 cron, 003 cron 로그 7일 정리). `/keyword/[keyword]`·OG 이미지·사이트맵은 순위권이 아니면 `getKeywordRecord`/`listRecordedKeywords`로 DB 기록을 읽는다. DB 클라이언트는 `shared/api/db.ts`(`postgres` 드라이버, 서버 전용).
   - **홈은 DB를 읽지 않는다.** DB 장애가 실시간 순위 표시를 막지 않게 RSS만 쓴다.
   - ⚠️ jsonb 파라미터는 `${JSON.stringify(x)}::text::jsonb`로 넘긴다. `::jsonb`만 붙이면 postgres.js가 한 번 더 인코딩해 배열 대신 문자열 스칼라가 저장된다.
   - 마이그레이션은 Supabase CLI 없이 SQL Editor(또는 `POSTGRES_URL_NON_POOLING`)로 적용한다. `002`의 토큰은 파일에 적지 말고 Vault(`keywi_cron_secret`)에 둔다.
