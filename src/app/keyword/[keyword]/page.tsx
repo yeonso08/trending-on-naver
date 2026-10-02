@@ -67,6 +67,10 @@ export async function generateMetadata({ params }: KeywordPageProps): Promise<Me
     title: `${keyword} — ${headline}`,
     description,
     alternates: { canonical: `/keyword/${slug}` },
+    // 검색어마다 같은 틀로 찍히는 페이지가 수천 개라 AdSense가 "가치가 별로 없는 콘텐츠"로 반려했다
+    // (2026-10-02, 두 번째). 검색 유입은 5주에 5클릭뿐이었다. 페이지는 열어 두고 색인에서만 뺀다.
+    // follow는 남겨 날짜별 기록·글로 이어지는 링크는 따라가게 한다.
+    robots: { index: false, follow: true },
     // images를 여기서 지정하면 파일 기반 opengraph-image.tsx를 덮어쓴다.
     // 구글 RSS의 topic.picture는 gstatic 핫링크에 폭이 수백 px뿐이라
     // summary_large_image 카드에 맞지 않는다. 우리가 그리는 1200x630 카드를 쓴다.

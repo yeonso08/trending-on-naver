@@ -136,21 +136,3 @@ export async function getKeywordRecord(keyword: string): Promise<KeywordRecord |
     return null
   }
 }
-
-/** 사이트맵용. 최근에 순위권이었던 순서로. */
-export async function listRecordedKeywords(
-  limit = 5000
-): Promise<Array<{ keyword: string; lastSeenAt: string }>> {
-  const sql = getSql()
-  if (!sql) return []
-
-  try {
-    const rows = await sql<{ keyword: string; last_seen_at: Date }[]>`
-      select keyword, last_seen_at from public.keywords order by last_seen_at desc limit ${limit}
-    `
-    return rows.map((row) => ({ keyword: row.keyword, lastSeenAt: row.last_seen_at.toISOString() }))
-  } catch (error) {
-    console.error('검색어 목록 조회 실패:', error)
-    return []
-  }
-}
