@@ -191,7 +191,7 @@ content/
   - ⚠️ 헤더가 레이아웃에 있어 **동적 라우트(홈 등)도 런타임에 글 폴더를 읽는다.** `next.config.ts`의 `outputFileTracingIncludes`로 `content/articles/**`를 번들에 넣었다. 빠지면 배포본에서만 '인사이트' 메뉴가 사라진다.
   - 글은 레포에 커밋되는 신뢰된 원본이라 HTML을 새니타이즈하지 않는다. 외부 입력을 이 경로로 넣지 말 것.
   - ⚠️ 마크다운 본문의 물결표는 숫자 사이든 글자 사이든(`1\~2분`, `중순\~11월`) 모두 이스케이프한다. 한 줄에 `~`가 두 개면 Prettier가 GFM 취소선으로 보고 `~~`로 바꿔 사이 글자에 취소선이 그어진다(2026-09-14 실제로 발생). frontmatter는 평문으로 찍히므로 이스케이프하지 않는다.
-- **검색어 이력**: Supabase `pg_cron` → `POST /api/collect` → `entities/trending/api/keyword-history.ts`의 `recordSnapshot`이 Supabase Postgres에 기록. 스키마는 `db/migrations/`(001 테이블, 002 수집 cron, 003 cron 로그 7일 정리). `/keyword/[keyword]`·OG 이미지·사이트맵은 순위권이 아니면 `getKeywordRecord`/`listRecordedKeywords`로 DB 기록을 읽는다. DB 클라이언트는 `shared/api/db.ts`(`postgres` 드라이버, 서버 전용).
+- **검색어 이력**: Supabase `pg_cron` → `POST /api/collect` → `entities/trending/api/keyword-history.ts`의 `recordSnapshot`이 Supabase Postgres에 기록. 스키마는 `db/migrations/`(001 테이블, 002 수집 cron, 003 cron 로그 7일 정리). `/keyword/[keyword]`·OG 이미지는 순위권이 아니면 `getKeywordRecord`로 DB 기록을 읽는다. DB 클라이언트는 `shared/api/db.ts`(`postgres` 드라이버, 서버 전용).
   - **홈은 DB를 읽지 않는다.** DB 장애가 실시간 순위 표시를 막지 않게 RSS만 쓴다.
   - ⚠️ jsonb 파라미터는 `${JSON.stringify(x)}::text::jsonb`로 넘긴다. `::jsonb`만 붙이면 postgres.js가 한 번 더 인코딩해 배열 대신 문자열 스칼라가 저장된다.
   - 마이그레이션은 Supabase CLI 없이 SQL Editor(또는 `POSTGRES_URL_NON_POOLING`)로 적용한다. `002`의 토큰은 파일에 적지 말고 Vault(`keywi_cron_secret`)에 둔다.
@@ -208,7 +208,7 @@ content/
    들고 있고, 동시 요청은 진행 중인 조회 하나를 함께 기다립니다. 메모리는 과금되지 않고 Fluid Compute가 인스턴스를
    재사용하므로 구글 호출도 묶입니다. **`revalidate`를 다시 붙이지 마세요.**
 2. **RSS를 읽는 라우트는 `dynamic = 'force-dynamic'`을 명시합니다**(홈, `/analysis`, `/keyword/*`와 그 OG 이미지,
-   `/daily/*`, 사이트맵, `/api/trending`, `/api/collect`). 메모리 캐시가 맞으면 fetch가 없어서 Next가 동적 렌더를
+   `/daily/*`, 사이트맵(날짜별 기록을 읽음), `/api/trending`, `/api/collect`). 메모리 캐시가 맞으면 fetch가 없어서 Next가 동적 렌더를
    감지하지 못합니다. 빠뜨리면 빌드 때 정적으로 굳거나 ISR로 잡힙니다. 새 라우트를 추가할 때도 마찬가지입니다.
 3. **예외로 `/articles`와 `/articles/[slug]`는 `force-static`입니다.** 글은 배포 때만 바뀌므로 빌드 때 한 번 만들고
    다시 만들지 않습니다. 사이드바 순위는 빌드 시점 값으로 그려지고 아래 4번이 곧바로 최신으로 바꿉니다.
@@ -242,13 +242,14 @@ content/
 1. **파일명은 kebab-case입니다.** 대부분 정리됐습니다(`trend-chart.tsx`, `search-form.tsx`, `trends-dashboard.tsx`). 남은 PascalCase가 보이면 손대는 김에 함께 바꾸세요.
 2. **날짜·시각을 화면에 찍을 때는 `timeZone: 'Asia/Seoul'`을 반드시 명시하세요.** 서버(Vercel 서버리스)는 UTC로 돌기 때문에 타임존 없이 `Intl.DateTimeFormat`을 쓰면 9시간 어긋난 시각이 나갑니다. 로컬(KST)에서는 멀쩡해 보여서 발견이 어렵습니다.
 3. **`/keyword/[keyword]`는 한 번이라도 순위권에 오른 검색어를 렌더합니다.** 지금 순위권이면 RSS, 아니면 Supabase의 `keywords` 기록("최고 N위 · 날짜까지 순위권")을 씁니다. 이력은 2026-09-14 수집 시작 이후만 있으므로 그 전에 내려간 검색어는 not-found입니다.
-4. **한 번도 순위에 오르지 않은 검색어는 soft 404입니다.** `notFound()`를 호출하지만 루트 `loading.tsx` 때문에 스트리밍이 먼저 시작돼 HTTP 상태가 200으로 나갑니다(Next.js의 알려진 동작). `generateMetadata`가 `noindex, nofollow`를 붙이므로 색인되지는 않습니다. `dynamicParams = false`로 바꾸면 진짜 404가 되지만, 그러면 빌드 이후 새로 뜬 검색어가 전부 404가 되므로 쓰면 안 됩니다.
-5. **`AdSlot`은 설정이 없으면 아무것도 렌더하지 않습니다.** 예전에는 점선 자리표시자를 그렸는데 그대로 배포되면 미완성으로 보여서 걷어냈습니다. `NEXT_PUBLIC_ADSENSE_CLIENT`와 해당 지면의 `ADSENSE_SLOTS` 값이 **둘 다** 있어야 지면이 나옵니다. 지면 크기는 미리 잡아 두었으므로 광고가 들어와도 레이아웃 시프트가 없습니다.
-6. **`/ads.txt`는 정적 파일이 아니라 라우트입니다.** 게시자 ID에서 만들어 내므로 `public/`에 같은 이름의 파일을 두지 마세요 — 충돌합니다. ID가 없으면 404를 반환합니다.
-7. **AdSense 스크립트를 `next/script`로 바꾸지 마세요.** `afterInteractive` 전략은 `<head>`에 preload 링크만 남기고 실제 `<script>`를 하이드레이션 후 JS로 주입합니다. 구글은 스니펫을 `<head>`에 두라고 안내하고, JS를 실행하지 않는 크롤러는 그 태그를 보지 못합니다. `layout.tsx`에서 평범한 `<script>`로 직접 찍습니다.
-8. **자동 광고는 끈 채로 둡니다.** 수동 광고 단위로 갑니다 — `AdSlot`이 지면 높이를 미리 확보해 레이아웃 시프트를 막는데, 자동 광고를 켜면 그 설계가 무의미해지고 지면이 중복됩니다. 배경은 `docs/HISTORY.md` 1-16절에 있습니다.
-9. **`.next` 캐시가 소스 변경을 반영하지 못하는 경우가 있습니다.** 화면이 예전 그대로면 `rm -rf .next` 후 다시 빌드하세요.
-10. **`generateStaticParams`에는 인코딩하지 않은 원본 문자열을 넘겨야 합니다.** Next.js가 URL 인코딩을 담당하므로 `encodeURIComponent`한 값을 넘기면 이중 인코딩됩니다. 렌더 시점에 `decodeURIComponent`를 한 번 해도 `%EA%B0%84...`가 남아 검색어 매칭에 실패하고, 한글 검색어 페이지가 전부 not-found로 프리렌더됩니다. 라틴 문자 검색어(`mlb`)만 멀쩡해서 눈치채기 어렵습니다. `TrendingTopic.slug`는 **링크·사이트맵 전용**입니다.
+4. **`/keyword/*`는 전부 `noindex, follow`이고 사이트맵에도 없습니다.** 검색어만 바뀌고 틀이 같은 페이지가 1,900개(사이트맵의 98%)라 AdSense가 "가치가 별로 없는 콘텐츠"로 두 번 반려했습니다(2026-09-14, 2026-10-02). Search Console 5주 실적에서 이 페이지들의 클릭은 76건 중 5건뿐이었습니다. 페이지는 열려 있어 홈·날짜별 기록에서 들어갈 수 있습니다. **색인을 다시 켜지 마세요.** 검색 유입은 홈·글·날짜별 기록으로 받습니다.
+5. **한 번도 순위에 오르지 않은 검색어는 soft 404입니다.** `notFound()`를 호출하지만 루트 `loading.tsx` 때문에 스트리밍이 먼저 시작돼 HTTP 상태가 200으로 나갑니다(Next.js의 알려진 동작). `generateMetadata`가 `noindex, nofollow`를 붙이므로 색인되지는 않습니다. `dynamicParams = false`로 바꾸면 진짜 404가 되지만, 그러면 빌드 이후 새로 뜬 검색어가 전부 404가 되므로 쓰면 안 됩니다.
+6. **`AdSlot`은 설정이 없으면 아무것도 렌더하지 않습니다.** 예전에는 점선 자리표시자를 그렸는데 그대로 배포되면 미완성으로 보여서 걷어냈습니다. `NEXT_PUBLIC_ADSENSE_CLIENT`와 해당 지면의 `ADSENSE_SLOTS` 값이 **둘 다** 있어야 지면이 나옵니다. 지면 크기는 미리 잡아 두었으므로 광고가 들어와도 레이아웃 시프트가 없습니다.
+7. **`/ads.txt`는 정적 파일이 아니라 라우트입니다.** 게시자 ID에서 만들어 내므로 `public/`에 같은 이름의 파일을 두지 마세요 — 충돌합니다. ID가 없으면 404를 반환합니다.
+8. **AdSense 스크립트를 `next/script`로 바꾸지 마세요.** `afterInteractive` 전략은 `<head>`에 preload 링크만 남기고 실제 `<script>`를 하이드레이션 후 JS로 주입합니다. 구글은 스니펫을 `<head>`에 두라고 안내하고, JS를 실행하지 않는 크롤러는 그 태그를 보지 못합니다. `layout.tsx`에서 평범한 `<script>`로 직접 찍습니다.
+9. **자동 광고는 끈 채로 둡니다.** 수동 광고 단위로 갑니다 — `AdSlot`이 지면 높이를 미리 확보해 레이아웃 시프트를 막는데, 자동 광고를 켜면 그 설계가 무의미해지고 지면이 중복됩니다. 배경은 `docs/HISTORY.md` 1-16절에 있습니다.
+10. **`.next` 캐시가 소스 변경을 반영하지 못하는 경우가 있습니다.** 화면이 예전 그대로면 `rm -rf .next` 후 다시 빌드하세요.
+11. **`generateStaticParams`에는 인코딩하지 않은 원본 문자열을 넘겨야 합니다.** Next.js가 URL 인코딩을 담당하므로 `encodeURIComponent`한 값을 넘기면 이중 인코딩됩니다. 렌더 시점에 `decodeURIComponent`를 한 번 해도 `%EA%B0%84...`가 남아 검색어 매칭에 실패하고, 한글 검색어 페이지가 전부 not-found로 프리렌더됩니다. 라틴 문자 검색어(`mlb`)만 멀쩡해서 눈치채기 어렵습니다. `TrendingTopic.slug`는 **링크 전용**입니다.
 
 ## 폰트
 

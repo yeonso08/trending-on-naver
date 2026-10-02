@@ -2,11 +2,9 @@ import type { MetadataRoute } from 'next'
 
 import { listArticles } from '@/entities/article/api/get-articles'
 import { listArchiveDates } from '@/entities/trending/api/keyword-archive'
-import { getTrendingTopics } from '@/entities/trending/api/get-trending-topics'
-import { listRecordedKeywords } from '@/entities/trending/api/keyword-history'
 import { SITE } from '@/shared/config/site'
 
-/** 실시간 순위를 읽으므로 요청마다 만든다. 정적으로 두면 빌드 시점 목록에 굳는다. */
+/** 날짜별 기록(DB)을 읽으므로 요청마다 만든다. 정적으로 두면 빌드 시점 목록에 굳는다. */
 export const dynamic = 'force-dynamic'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -20,13 +18,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ]
 
   // 모두 실패 시 빈 배열을 준다. 사이트맵은 어떤 경우에도 나간다.
-  const [topics, recorded, archiveDates, articles] = await Promise.all([
-    getTrendingTopics(),
-    listRecordedKeywords(),
-    listArchiveDates(),
-    listArticles(),
-  ])
-  const liveKeywords = new Set(topics.map((topic) => topic.title))
+  // 검색어 상세(/keyword/*)는 noindex라 넣지 않는다. 이유는 그 페이지의 generateMetadata 참고.
+  const [archiveDates, articles] = await Promise.all([listArchiveDates(), listArticles()])
 
   return [
     ...staticRoutes,
@@ -47,21 +40,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'monthly' as const,
       priority: 0.7,
     })),
-    ...topics.map((topic) => ({
-      url: `${SITE.url}/keyword/${topic.slug}`,
-      lastModified: topic.pubDate ? new Date(topic.pubDate) : undefined,
-      changeFrequency: 'hourly' as const,
-      priority: 0.6,
-    })),
-    // 순위에서 내려간 검색어도 DB 기록으로 페이지가 유지된다
-    ...recorded
-      .filter((record) => !liveKeywords.has(record.keyword))
-      .map((record) => ({
-        url: `${SITE.url}/keyword/${encodeURIComponent(record.keyword)}`,
-        lastModified: new Date(record.lastSeenAt),
-        changeFrequency: 'weekly' as const,
-        priority: 0.5,
-      })),
     // 가장 최근 날짜(오늘)만 계속 바뀐다
     ...archiveDates.map((date, index) => ({
       url: `${SITE.url}/daily/${date}`,
