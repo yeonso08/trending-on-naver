@@ -250,6 +250,10 @@ content/
 9. **자동 광고는 끈 채로 둡니다.** 수동 광고 단위로 갑니다 — `AdSlot`이 지면 높이를 미리 확보해 레이아웃 시프트를 막는데, 자동 광고를 켜면 그 설계가 무의미해지고 지면이 중복됩니다. 배경은 `docs/HISTORY.md` 1-16절에 있습니다.
 10. **`.next` 캐시가 소스 변경을 반영하지 못하는 경우가 있습니다.** 화면이 예전 그대로면 `rm -rf .next` 후 다시 빌드하세요.
 11. **`generateStaticParams`에는 인코딩하지 않은 원본 문자열을 넘겨야 합니다.** Next.js가 URL 인코딩을 담당하므로 `encodeURIComponent`한 값을 넘기면 이중 인코딩됩니다. 렌더 시점에 `decodeURIComponent`를 한 번 해도 `%EA%B0%84...`가 남아 검색어 매칭에 실패하고, 한글 검색어 페이지가 전부 not-found로 프리렌더됩니다. 라틴 문자 검색어(`mlb`)만 멀쩡해서 눈치채기 어렵습니다. `TrendingTopic.slug`는 **링크 전용**입니다.
+12. **`next.config.ts`의 `htmlLimitedBots`를 지우지 마세요.** Next.js 15.2+는 동적 렌더 페이지의 title·canonical·robots를
+    `<body>` 중간에 스트리밍하는데, 기본 봇 목록에 일반 `Googlebot`이 없어 구글이 받는 HTML에서 canonical이 body에
+    놓였습니다(구글은 body의 canonical을 무시). URL 검사 도구(`Google-InspectionTool`)는 목록에 있어 정상으로 보이므로
+    검사로는 못 잡습니다. 확인은 `curl -A "Googlebot/2.1"`로 `</head>` 앞에 태그가 있는지 봅니다. 2026-10-05 추가.
 
 ## 폰트
 

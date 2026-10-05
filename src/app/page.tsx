@@ -20,7 +20,8 @@ import { TrendingSearches } from '@/widgets/trending-searches/ui/trending-search
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: `실시간 인기 검색어 순위 | ${SITE.name}`,
+  // 브랜드 검색('키위 실시간' 등)에 홈이 잡히도록 서비스명을 앞에 둔다. 레이아웃 템플릿을 거치지 않는다.
+  title: { absolute: `${SITE.name}(${SITE.nameEn}) — 실시간 인기 검색어 순위` },
   description: SITE.description,
   alternates: { canonical: '/' },
 }
