@@ -253,7 +253,7 @@ content/
 12. **`next.config.ts`의 `htmlLimitedBots`를 지우지 마세요.** Next.js 15.2+는 동적 렌더 페이지의 title·canonical·robots를
     `<body>` 중간에 스트리밍하는데, 기본 봇 목록에 일반 `Googlebot`이 없어 구글이 받는 HTML에서 canonical이 body에
     놓였습니다(구글은 body의 canonical을 무시). URL 검사 도구(`Google-InspectionTool`)는 목록에 있어 정상으로 보이므로
-    검사로는 못 잡습니다. 확인은 `curl -A "Googlebot/2.1"`로 `</head>` 앞에 태그가 있는지 봅니다. 2026-10-05 추가.
+    검사로는 못 잡습니다. 조사 기록은 [docs/SEO-INCIDENT-2026-10.md](docs/SEO-INCIDENT-2026-10.md). 확인은 `curl -A "Googlebot/2.1"`로 `</head>` 앞에 태그가 있는지 봅니다. 2026-10-05 추가.
 
 ## 폰트
 
