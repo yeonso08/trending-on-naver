@@ -1,6 +1,16 @@
 import type { NextConfig } from 'next'
+import { HTML_LIMITED_BOT_UA_RE } from 'next/dist/shared/lib/router/utils/html-bots'
 
 const nextConfig: NextConfig = {
+  /**
+   * Googlebot에게도 메타데이터를 <head>에 담아 보낸다.
+   *
+   * Next.js 15.2+는 동적 렌더 페이지의 title·description·canonical·robots를 <body> 중간에
+   * 스트리밍한다. 기본 목록(HTML_LIMITED_BOT_UA_RE)은 `Google-InspectionTool` 등은 잡지만 일반
+   * `Googlebot`은 빠져 있어, URL 검사에선 정상인데 실제 크롤링에선 canonical이 body에 놓인다.
+   * 구글은 body의 canonical을 무시한다. 기본 목록을 대체하는 옵션이라 반드시 이어 붙인다.
+   */
+  htmlLimitedBots: new RegExp(`Googlebot|${HTML_LIMITED_BOT_UA_RE.source}`, 'i'),
   /**
    * OG 이미지 라우트가 런타임에 읽는 폰트를 서버리스 번들에 포함시킨다.
    *
