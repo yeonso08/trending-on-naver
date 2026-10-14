@@ -163,6 +163,7 @@ src/
     /articles/[slug]     글 상세 (SSG·재생성 없음, dynamicParams=false — 없는 주소는 진짜 404)
     /about /privacy /terms   정적 문서 (AdSense 심사에 필요)
     sitemap.ts robots.ts     SEO
+    sitemap-keywords.xml     임시 — /keyword/* noindex 재크롤링 유도용 (알려진 이슈 4번)
     api/trends           네이버 데이터랩 프록시 (POST)
     api/trending         실시간 검색어 JSON (GET) — 열린 탭 폴링용
     api/collect          검색어 이력 수집 (POST, CRON_SECRET) — Supabase pg_cron이 1분마다 호출
@@ -243,6 +244,7 @@ content/
 2. **날짜·시각을 화면에 찍을 때는 `timeZone: 'Asia/Seoul'`을 반드시 명시하세요.** 서버(Vercel 서버리스)는 UTC로 돌기 때문에 타임존 없이 `Intl.DateTimeFormat`을 쓰면 9시간 어긋난 시각이 나갑니다. 로컬(KST)에서는 멀쩡해 보여서 발견이 어렵습니다.
 3. **`/keyword/[keyword]`는 한 번이라도 순위권에 오른 검색어를 렌더합니다.** 지금 순위권이면 RSS, 아니면 Supabase의 `keywords` 기록("최고 N위 · 날짜까지 순위권")을 씁니다. 이력은 2026-09-14 수집 시작 이후만 있으므로 그 전에 내려간 검색어는 not-found입니다.
 4. **`/keyword/*`는 전부 `noindex, follow`이고 사이트맵에도 없습니다.** 검색어만 바뀌고 틀이 같은 페이지가 1,900개(사이트맵의 98%)라 AdSense가 "가치가 별로 없는 콘텐츠"로 두 번 반려했습니다(2026-09-14, 2026-10-02). Search Console 5주 실적에서 이 페이지들의 클릭은 76건 중 5건뿐이었습니다. 페이지는 열려 있어 홈·날짜별 기록에서 들어갈 수 있습니다. **색인을 다시 켜지 마세요.** 검색 유입은 홈·글·날짜별 기록으로 받습니다.
+   ⚠️ **`/sitemap-keywords.xml`은 임시입니다**(2026-10-14). noindex를 구글이 빨리 확인하도록 10월 2일 전에 알려진 `/keyword/*` 1,868개를 담아 Search Console에 따로 제출했습니다. 색인을 켜는 게 아닙니다. 색인된 `/keyword/*`가 거의 없어지면 제출을 지우고 `src/app/sitemap-keywords.xml/`도 지웁니다. 본 사이트맵·robots.txt에는 넣지 마세요.
 5. **한 번도 순위에 오르지 않은 검색어는 soft 404입니다.** `notFound()`를 호출하지만 루트 `loading.tsx` 때문에 스트리밍이 먼저 시작돼 HTTP 상태가 200으로 나갑니다(Next.js의 알려진 동작). `generateMetadata`가 `noindex, nofollow`를 붙이므로 색인되지는 않습니다. `dynamicParams = false`로 바꾸면 진짜 404가 되지만, 그러면 빌드 이후 새로 뜬 검색어가 전부 404가 되므로 쓰면 안 됩니다.
 6. **`AdSlot`은 설정이 없으면 아무것도 렌더하지 않습니다.** 예전에는 점선 자리표시자를 그렸는데 그대로 배포되면 미완성으로 보여서 걷어냈습니다. `NEXT_PUBLIC_ADSENSE_CLIENT`와 해당 지면의 `ADSENSE_SLOTS` 값이 **둘 다** 있어야 지면이 나옵니다. 지면 크기는 미리 잡아 두었으므로 광고가 들어와도 레이아웃 시프트가 없습니다.
 7. **`/ads.txt`는 정적 파일이 아니라 라우트입니다.** 게시자 ID에서 만들어 내므로 `public/`에 같은 이름의 파일을 두지 마세요 — 충돌합니다. ID가 없으면 404를 반환합니다.

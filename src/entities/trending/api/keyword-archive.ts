@@ -138,3 +138,21 @@ export async function listArchiveDates(limit = 400): Promise<string[]> {
     return []
   }
 }
+
+/** 주어진 시각 전에 처음 순위에 오른 검색어. 가나다순. DB 설정이 없거나 오류면 빈 배열. */
+export async function listKeywordsFirstSeenBefore(cutoff: Date): Promise<string[]> {
+  const sql = getSql()
+  if (!sql) return []
+
+  try {
+    const rows = await sql<{ keyword: string }[]>`
+      select keyword from public.keywords
+      where first_seen_at < ${cutoff}
+      order by keyword
+    `
+    return rows.map((row) => row.keyword)
+  } catch (error) {
+    console.error('검색어 목록 조회 실패:', error)
+    return []
+  }
+}
