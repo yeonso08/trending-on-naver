@@ -161,13 +161,14 @@ src/
     /daily/[date]        하루 동안 순위에 오른 검색어 — 요약 문장 + 최고 순위·체류 시간 (요청마다 렌더)
     /articles            인사이트(직접 쓴 글) 목록 (빌드 때 한 번, force-static). 글이 없으면 noindex
     /articles/[slug]     글 상세 (SSG·재생성 없음, dynamicParams=false — 없는 주소는 진짜 404)
+    /articles/page/[page]  목록 2페이지부터 (한 페이지 10개, SSG). 1페이지는 /articles뿐이라 /articles/page/1은 404
     /about /privacy /terms   정적 문서 (AdSense 심사에 필요)
     sitemap.ts robots.ts     SEO
     sitemap-keywords.xml     임시 — /keyword/* noindex 재크롤링 유도용 (알려진 이슈 4번)
     api/trends           네이버 데이터랩 프록시 (POST)
     api/trending         실시간 검색어 JSON (GET) — 열린 탭 폴링용
     api/collect          검색어 이력 수집 (POST, CRON_SECRET) — Supabase pg_cron이 1분마다 호출
-  widgets/    페이지 단위 조합 (site-header, site-footer, trends-dashboard, trending-searches)
+  widgets/    페이지 단위 조합 (site-header, site-footer, trends-dashboard, trending-searches, article-list)
   features/   기능 단위 (trend-analysis, trending-list, keyword-detail)
   entities/   도메인 모델 + 데이터 조회 (trending, article)
   shared/     config/site.ts, types/, lib/format.ts, ui/ (ad-slot, prose, article-prose)
