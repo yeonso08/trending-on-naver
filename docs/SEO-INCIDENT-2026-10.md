@@ -191,3 +191,4 @@ noindex를 읽고 빼게 만드는 용도입니다. 본 사이트맵(`sitemap.ts
 - Search Console의 이 사이트맵에 "제출된 URL에 noindex 태그가 추가됨" 같은 경고가 뜨는 것은 의도한 결과입니다.
 - **지울 때:** 색인 생성 보고서에서 색인된 `/keyword/*`가 거의 없어지면 Search Console에서 제출을 삭제하고
   `src/app/sitemap-keywords.xml/`과 `listKeywordsFirstSeenBefore`를 지웁니다.
+- 10월 14일 제출 결과: `sitemap-keywords.xml` 성공·1,868개. 같은 날 본 사이트맵도 다시 제출했습니다(10월 2일 이후 읽히지 않았음, 38개 → 52개).
