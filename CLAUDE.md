@@ -243,6 +243,7 @@ content/
 
 1. **파일명은 kebab-case입니다.** 대부분 정리됐습니다(`trend-chart.tsx`, `search-form.tsx`, `trends-dashboard.tsx`). 남은 PascalCase가 보이면 손대는 김에 함께 바꾸세요.
 2. **날짜·시각을 화면에 찍을 때는 `timeZone: 'Asia/Seoul'`을 반드시 명시하세요.** 서버(Vercel 서버리스)는 UTC로 돌기 때문에 타임존 없이 `Intl.DateTimeFormat`을 쓰면 9시간 어긋난 시각이 나갑니다. 로컬(KST)에서는 멀쩡해 보여서 발견이 어렵습니다.
+   시각에 **오전/오후를 `Intl`에 맡기지 마세요.** Vercel 서버의 `ko-KR` 포맷은 `PM`을 찍고 브라우저는 `오후`를 찍어, 클라이언트 컴포넌트는 하이드레이션 오류(React #418)가 나고 서버 문장엔 영어가 섞였습니다(2026-10-19). `shared/lib/format.ts`의 `formatKstDateTime`·`formatKstUpdatedAt`을 쓰세요.
 3. **`/keyword/[keyword]`는 한 번이라도 순위권에 오른 검색어를 렌더합니다.** 지금 순위권이면 RSS, 아니면 Supabase의 `keywords` 기록("최고 N위 · 날짜까지 순위권")을 씁니다. 이력은 2026-09-14 수집 시작 이후만 있으므로 그 전에 내려간 검색어는 not-found입니다.
 4. **`/keyword/*`는 전부 `noindex, follow`이고 사이트맵에도 없습니다.** 검색어만 바뀌고 틀이 같은 페이지가 1,900개(사이트맵의 98%)라 AdSense가 "가치가 별로 없는 콘텐츠"로 두 번 반려했습니다(2026-09-14, 2026-10-02). Search Console 5주 실적에서 이 페이지들의 클릭은 76건 중 5건뿐이었습니다. 페이지는 열려 있어 홈·날짜별 기록에서 들어갈 수 있습니다. **색인을 다시 켜지 마세요.** 검색 유입은 홈·글·날짜별 기록으로 받습니다.
    ⚠️ **`/sitemap-keywords.xml`은 임시입니다**(2026-10-14). noindex를 구글이 빨리 확인하도록 10월 2일 전에 알려진 `/keyword/*` 1,868개를 담아 Search Console에 따로 제출했습니다. 색인을 켜는 게 아닙니다. 색인된 `/keyword/*`가 거의 없어지면 제출을 지우고 `src/app/sitemap-keywords.xml/`도 지웁니다. 본 사이트맵·robots.txt에는 넣지 마세요.
