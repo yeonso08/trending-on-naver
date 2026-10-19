@@ -32,9 +32,10 @@
 
 ## 다음에 할 일
 
-1. **새 글 색인 생성 요청 — 사용자.** 10월 19일 확인 때도 `weekly-trending-2026-10-05`는 구글이 모르는 URL이었습니다.
-   URL 검사에서 `https://keywi.kr/articles/weekly-trending-2026-10-05`와
-   `https://keywi.kr/articles/weekly-trending-2026-10-12`의 색인 생성을 요청합니다.
+1. **`weekly-trending-2026-10-12` 색인 생성 요청 — Claude, PR #37 배포 후.** 10월 19일에
+   `weekly-trending-2026-10-05`(구글이 모르던 URL), `datalab-gender-age-filters`(마지막 크롤링 9월 15일),
+   `content-topics-from-trends`(9월 14일), `/articles`(10월 5일)의 색인을 요청했습니다. 뒤의 세 개는
+   "크롤링됨 - 현재 색인 생성 안 됨"이었고, 그중 두 개는 사이트맵 항목이 "일시적인 처리 오류"로 나왔습니다.
 2. **구글 색인 회복 지켜보기 — Claude, 매주(다음 10월 26일쯤).** Search Console에서 볼 것:
    - 색인 생성 보고서: 색인된 `/keyword/*`(10월 9일 기준 75개)가 줄어 "noindex 태그에 의해 제외됨"(24개)으로 옮겨 가는지.
      거의 0이 되면 `/sitemap-keywords.xml` 제출을 지우고 라우트도 삭제합니다([조사 문서 12절](SEO-INCIDENT-2026-10.md)).
