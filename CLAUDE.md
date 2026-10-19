@@ -157,7 +157,7 @@ src/
     /                    실시간 검색어 순위 (요청마다 렌더)
     /analysis            검색어 트렌드 분석 (데이터랩)
     /keyword/[keyword]   검색어 상세 — 기록 해석 문장 + 관련 뉴스 + 30일 추이 (요청마다 렌더)
-    /daily               날짜별 기록 목록 (요청마다 렌더)
+    /daily               날짜별 기록 달력 — 달마다 기록 있는 날만 링크 (요청마다 렌더)
     /daily/[date]        하루 동안 순위에 오른 검색어 — 요약 문장 + 최고 순위·체류 시간 (요청마다 렌더)
     /articles            인사이트(직접 쓴 글) 목록 (빌드 때 한 번, force-static). 글이 없으면 noindex
     /articles/[slug]     글 상세 (SSG·재생성 없음, dynamicParams=false — 없는 주소는 진짜 404)
@@ -168,7 +168,7 @@ src/
     api/trends           네이버 데이터랩 프록시 (POST)
     api/trending         실시간 검색어 JSON (GET) — 열린 탭 폴링용
     api/collect          검색어 이력 수집 (POST, CRON_SECRET) — Supabase pg_cron이 1분마다 호출
-  widgets/    페이지 단위 조합 (site-header, site-footer, trends-dashboard, trending-searches, article-list)
+  widgets/    페이지 단위 조합 (site-header, site-footer, trends-dashboard, trending-searches, article-list, archive-calendar)
   features/   기능 단위 (trend-analysis, trending-list, keyword-detail)
   entities/   도메인 모델 + 데이터 조회 (trending, article)
   shared/     config/site.ts, types/, lib/format.ts, ui/ (ad-slot, prose, article-prose)
