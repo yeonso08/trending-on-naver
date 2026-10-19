@@ -2,6 +2,7 @@ import Link from 'next/link'
 
 import type { DailySummary } from '@/entities/trending/model/keyword-archive'
 import { formatDuration } from '@/shared/lib/format'
+import { LinkPendingSpinner } from '@/shared/ui/link-pending-spinner'
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
 
@@ -39,6 +40,7 @@ export function RecentDays({ days, today }: { days: DailySummary[]; today: strin
                 </p>
               </div>
 
+              <LinkPendingSpinner className="shrink-0 text-muted-foreground" />
               {isToday && (
                 <span className="shrink-0 rounded-md bg-heat-soft px-2 py-0.5 text-[12px] font-bold text-heat ring-1 ring-inset ring-heat-border">
                   집계 중
