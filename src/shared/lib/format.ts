@@ -10,16 +10,60 @@ export function formatKstDate(isoDate: string): string {
   }).format(new Date(isoDate))
 }
 
-/** "2026년 9월 14일 오전 9:28" */
-export function formatKstDateTime(isoDate: string): string {
-  return new Intl.DateTimeFormat('ko-KR', {
+interface KstParts {
+  year: number
+  month: number
+  day: number
+  /** 0–23 */
+  hour: number
+  minute: number
+}
+
+/**
+ * KST 기준 연·월·일·시·분. 숫자만 받아 한국어 표기는 직접 조립한다.
+ * ko-KR의 오전/오후는 런타임 ICU에 따라 달라서, Vercel 서버는 "PM"을, 브라우저는 "오후"를 찍었다.
+ * 서버 문장에 영어가 섞이고 클라이언트 컴포넌트는 하이드레이션 불일치(React #418)가 났다(2026-10-19).
+ */
+function toKstParts(isoDate: string | Date): KstParts {
+  const parts = new Intl.DateTimeFormat('en-US', {
     timeZone: KST,
     year: 'numeric',
-    month: 'long',
+    month: 'numeric',
     day: 'numeric',
     hour: 'numeric',
-    minute: '2-digit',
-  }).format(new Date(isoDate))
+    minute: 'numeric',
+    hourCycle: 'h23',
+  }).formatToParts(new Date(isoDate))
+  const get = (type: Intl.DateTimeFormatPartTypes) =>
+    Number(parts.find((part) => part.type === type)?.value)
+  return {
+    year: get('year'),
+    month: get('month'),
+    day: get('day'),
+    hour: get('hour'),
+    minute: get('minute'),
+  }
+}
+
+/** 0–23시 → ["오후", 2] */
+function toKoreanClock(hour: number): [string, number] {
+  return [hour < 12 ? '오전' : '오후', hour % 12 || 12]
+}
+
+/** "2026년 9월 14일 오전 9:28" */
+export function formatKstDateTime(isoDate: string): string {
+  const { year, month, day, hour, minute } = toKstParts(isoDate)
+  const [period, clock] = toKoreanClock(hour)
+  return `${year}년 ${month}월 ${day}일 ${period} ${clock}:${String(minute).padStart(2, '0')}`
+}
+
+/** "10월 19일 오후 02:14". 실시간 순위의 업데이트 시각. 유효하지 않은 값이면 null. */
+export function formatKstUpdatedAt(isoDate: string): string | null {
+  if (Number.isNaN(new Date(isoDate).getTime())) return null
+  const { month, day, hour, minute } = toKstParts(isoDate)
+  const [period, clock] = toKoreanClock(hour)
+  const pad = (value: number) => String(value).padStart(2, '0')
+  return `${month}월 ${day}일 ${period} ${pad(clock)}:${pad(minute)}`
 }
 
 /** 시각 → 그 시각의 KST 날짜 키 "YYYY-MM-DD" */
