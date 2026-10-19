@@ -10,6 +10,7 @@ import { formatDateKey, formatDuration, isValidDateKey, toKstDateKey } from '@/s
 import { buildBreadcrumbSchema, buildGraph } from '@/shared/model/structured-data'
 import { AdSlot } from '@/shared/ui/ad-slot'
 import { JsonLd } from '@/shared/ui/json-ld'
+import { LinkPendingSpinner } from '@/shared/ui/link-pending-spinner'
 import { TrendingSidebarLayout } from '@/widgets/trending-searches/ui/trending-sidebar-layout'
 
 interface DailyPageProps {
@@ -100,6 +101,7 @@ export default async function DailyPage({ params }: DailyPageProps) {
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           날짜별 기록
+          <LinkPendingSpinner />
         </Link>
 
         <header className="mt-5">

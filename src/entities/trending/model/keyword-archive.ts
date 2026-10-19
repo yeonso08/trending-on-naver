@@ -14,3 +14,14 @@ export interface DailyKeyword {
   /** 마지막으로 확인된 대표 뉴스 */
   headline?: { title: string; source: string }
 }
+
+/** 날짜별 기록 목록에 쓰는 하루 요약 */
+export interface DailySummary {
+  /** YYYY-MM-DD (KST) */
+  date: string
+  /** 그날 순위권에 오른 서로 다른 검색어 수 */
+  keywordCount: number
+  /** 그날 가장 오래 순위권에 머문 검색어 */
+  topKeyword: string
+  topMinutes: number
+}

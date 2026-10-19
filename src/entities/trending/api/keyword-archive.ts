@@ -1,4 +1,4 @@
-import type { DailyKeyword } from '@/entities/trending/model/keyword-archive'
+import type { DailyKeyword, DailySummary } from '@/entities/trending/model/keyword-archive'
 import { getSql } from '@/shared/api/db'
 
 /**
@@ -112,6 +112,78 @@ export async function getDailyRanking(dateKey: string): Promise<DailyKeyword[]> 
     }))
   } catch (error) {
     console.error(`날짜별 검색어 조회 실패 (${dateKey}):`, error)
+    return []
+  }
+}
+
+interface SummaryRow {
+  date: string
+  keyword_count: number
+  top_keyword: string
+  top_minutes: number
+}
+
+/**
+ * 연속한 날짜(KST) 구간의 하루 요약. 구간 전체를 한 번에 펼쳐 날마다 잘라 센다.
+ * 체류 시간 계산은 getDailyRanking과 같다. 최신순. DB 설정이 없거나 오류면 빈 배열.
+ */
+export async function getDailySummaries(from: string, to: string): Promise<DailySummary[]> {
+  const sql = getSql()
+  if (!sql) return []
+
+  try {
+    const rows = await sql<SummaryRow[]>`
+      with days as (
+        select
+          d::date as day,
+          d::date::timestamp at time zone 'Asia/Seoul' as day_start,
+          (d::date + 1)::timestamp at time zone 'Asia/Seoul' as day_end
+        from generate_series(${from}::date, ${to}::date, interval '1 day') d
+      ),
+      segments as (
+        select
+          s.id,
+          s.captured_at as seg_start,
+          least(coalesce(n.next_at, now()), s.checked_at + ${COLLECT_INTERVAL}::interval) as seg_end
+        from public.snapshots s
+        left join lateral (
+          select nx.captured_at as next_at
+          from public.snapshots nx
+          where nx.captured_at > s.captured_at
+          order by nx.captured_at
+          limit 1
+        ) n on true
+        where s.captured_at < (select max(day_end) from days)
+          and s.checked_at + ${COLLECT_INTERVAL}::interval > (select min(day_start) from days)
+      ),
+      per_keyword as (
+        select
+          d.day,
+          i.keyword,
+          sum(extract(epoch from (least(seg.seg_end, d.day_end) - greatest(seg.seg_start, d.day_start)))) / 60 as minutes
+        from segments seg
+        join days d on seg.seg_start < d.day_end and seg.seg_end > d.day_start
+        join public.snapshot_items i on i.snapshot_id = seg.id
+        group by d.day, i.keyword
+      )
+      select
+        to_char(day, 'YYYY-MM-DD') as date,
+        count(*)::int as keyword_count,
+        (array_agg(keyword order by minutes desc, keyword))[1] as top_keyword,
+        round(max(minutes))::int as top_minutes
+      from per_keyword
+      group by day
+      order by day desc
+    `
+
+    return rows.map((row) => ({
+      date: row.date,
+      keywordCount: row.keyword_count,
+      topKeyword: row.top_keyword,
+      topMinutes: row.top_minutes,
+    }))
+  } catch (error) {
+    console.error(`하루 요약 조회 실패 (${from} ~ ${to}):`, error)
     return []
   }
 }
