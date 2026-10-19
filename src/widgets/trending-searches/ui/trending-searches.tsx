@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 
 import type { TrendingTopic } from '@/entities/trending/model/types'
 import { TrendingList } from '@/features/trending-list/ui/trending-list'
+import { formatKstUpdatedAt } from '@/shared/lib/format'
 
 /** 열려 있는 탭이 이후 몇 분 지나도 저절로 최신화되도록 하는 폴링 주기 */
 const POLL_INTERVAL_MS = 60_000
@@ -15,19 +16,6 @@ interface TrendingSearchesProps {
   fetchedAt: string
   /** 사이드바처럼 좁은 폭에 넣을 때: 썸네일과 인피드 광고를 뺀다 */
   compact?: boolean
-}
-
-function formatUpdatedAt(isoDate: string): string | null {
-  const date = new Date(isoDate)
-  if (Number.isNaN(date.getTime())) return null
-
-  return new Intl.DateTimeFormat('ko-KR', {
-    timeZone: 'Asia/Seoul',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(date)
 }
 
 export function TrendingSearches({
@@ -71,7 +59,7 @@ export function TrendingSearches({
     }
   }, [])
 
-  const updatedAt = formatUpdatedAt(fetchedAt)
+  const updatedAt = formatKstUpdatedAt(fetchedAt)
 
   return (
     <section className="overflow-hidden rounded-xl border border-border/70 bg-card">
