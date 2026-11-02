@@ -32,7 +32,7 @@
   사용량은 거의 0이라 10월 말이면 수천 단위로 내려갑니다. Fast Origin Transfer는 5.27 / 10 GB로 절반을 넘었습니다.
 - Vercel CDN Requests(10월 2일 ~ 11월 1일): **916K / 1M(92%)**. 하루 약 29K 중 브라우저 위장 크롤러가 약 56%, OAI-SearchBot 17%,
   수집 cron 5%이고, 경로로는 `/keyword/[keyword]`가 약 70%였습니다. 11월 2일 Firewall Bot Protection(Challenge)을 켜고
-  `/api/collect` Bypass 규칙을 추가했습니다. 켠 뒤 수집 정상(1분마다 200), 브라우저 접속 정상, Search Console 실제 URL 테스트 통과를
+  `/api/collect` Bypass 규칙을 추가했습니다. 켠 뒤 수집 정상(1분마다 200), 브라우저 접속 정상, Search Console 실제 URL 테스트 통과, 카카오톡 링크 미리보기 정상(사용자 확인)을
   확인했습니다. **11월 4일쯤 Usage에서 CDN Requests 증가 속도가 줄었는지 확인**하고, 부족하면 robots.txt로 구글·네이버 외 봇의
   `/keyword/` 접근을 막는 방안을 검토합니다(AEO 손해는 `/keyword/*`에 한정).
 - 인사이트 목록은 한 페이지 10개씩 나눕니다(`/articles`, `/articles/page/2`…, 10월 14일).
