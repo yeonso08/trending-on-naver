@@ -8,7 +8,7 @@
 ## 현재 상태
 
 - 프로덕션: https://keywi.kr
-- 검색어 이력 수집·날짜별 기록·인사이트 글 17편이 운영 중입니다. 주간 리포트는
+- 검색어 이력 수집·날짜별 기록·인사이트 글 18편이 운영 중입니다. 주간 리포트는
   [9월 14~20일](https://keywi.kr/articles/weekly-trending-2026-09-14)과
   [9월 21~27일](https://keywi.kr/articles/weekly-trending-2026-09-21),
   [9월 28일~10월 4일](https://keywi.kr/articles/weekly-trending-2026-09-28),
@@ -16,7 +16,7 @@
   [10월 12일~18일](https://keywi.kr/articles/weekly-trending-2026-10-12),
   [10월 19일~25일](https://keywi.kr/articles/weekly-trending-2026-10-19),
   [10월 26일~11월 1일](https://keywi.kr/articles/weekly-trending-2026-10-26), 월간 결산은
-  [9월](https://keywi.kr/articles/monthly-trending-2026-09)을 게시했습니다.
+  [9월](https://keywi.kr/articles/monthly-trending-2026-09)과 [10월](https://keywi.kr/articles/monthly-trending-2026-10)을 게시했습니다.
 - Search Console(10월 19일 확인, 색인 보고서는 10월 12일 기준): 색인된 페이지 82개로 10월 9일과 같고,
   "noindex 태그에 의해 제외됨"은 24개 → 26개로 조금 늘었습니다. 색인되지 않은 페이지 407개 중 369개가
   "크롤링됨 - 현재 색인 생성 안 됨"입니다. 구글 `site:keywi.kr/articles` 검색 결과는 **0건**으로, 10월 14일에 색인돼
@@ -54,8 +54,9 @@
    평일 오전 10\~12시의 `카드뉴스`가 4주째 이어지는지, 밤 9\~10시 외국어 '내일 날씨'가 다시 늘어나는지
    (25시간 → 4시간 40분으로 줄었음), 오후 크리켓 검색어(이번 주 16개·26시간)가 경기 일정에 맞춰 반복되는지.
    11월 3일 시작하는 한국시리즈(KT-삼성)도 봅니다.
-5. **10월 월간 결산 — Claude.** 11월 초에 10월 1일 ~ 31일 기록으로 [9월 결산](https://keywi.kr/articles/monthly-trending-2026-09)과
-   같은 형식으로 작성합니다.
+5. **11월 월간 결산 — Claude.** 12월 초에 11월 1일 ~ 30일 기록으로 [10월 결산](https://keywi.kr/articles/monthly-trending-2026-10)과
+   같은 형식(TOP 10·1위 시간·여러 날 돌아온 검색어·평일/주말 구분·주 단위 목록 교체 속도)으로 작성합니다.
+   수능(11월 중순) 전후 검색어를 따로 봅니다.
 
 ## 이후 콘텐츠 후보
 
