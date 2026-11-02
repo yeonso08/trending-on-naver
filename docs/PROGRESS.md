@@ -35,7 +35,9 @@
 
 ## 다음에 할 일
 
-1. **새 글 색인 요청 — Claude, PR #44 배포 직후.** `weekly-trending-2026-10-26`, `monthly-trending-2026-10`.
+1. **색인 요청한 글 결과 확인 — Claude, 다음 확인 때.** 11월 2일 PR #44 배포 직후 `weekly-trending-2026-10-26`,
+   `monthly-trending-2026-10`의 색인을 요청했습니다. 요청 전 결과는 둘 다 "Google에 아직 알려지지 않은 URL"이었고,
+   요청 후 "색인 생성 요청됨"을 확인했습니다.
    11월 2일 URL 검사 결과 지난번 요청한 URL은 모두 "URL이 Google에 등록되어 있지 않음 / 크롤링됨 - 현재 색인이
    생성되지 않음"이었습니다. 마지막 크롤링은 `weekly-trending-2026-10-12`·`10-05`·`datalab-gender-age-filters`·
    `content-topics-from-trends`·`/articles`가 10월 19일(요청 당일), `weekly-trending-2026-10-19`가 10월 29일입니다.
