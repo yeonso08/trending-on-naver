@@ -141,6 +141,13 @@ NEXT_PUBLIC_ADSENSE_CLIENT=ca-pub-0000000000000000
 
    `pnpm audit`으로 필요한 최소 버전을 확인하고 올리면 됩니다.
 
+   ⚠️ **Vercel Firewall에서 Bot Protection(Challenge)을 켜 두었습니다**(2026-11-02, 키위 프로젝트만). 브라우저로 위장한
+   데이터센터 크롤러가 `/keyword/*`를 하루 1만 건 넘게 긁어 Hobby CDN Requests 한도(월 100만)의 92%를 썼기 때문입니다.
+   검증된 봇(Googlebot·네이버·OAI-SearchBot 등)은 통과하고, AI Bots 차단은 AEO 때문에 꺼 둡니다.
+   **커스텀 규칙 `Allow collect cron`(`/api/collect` → Bypass)을 지우지 마세요.** Supabase `pg_net` 요청은 브라우저가 아니라
+   이 규칙이 없으면 챌린지(429)에 걸려 순위 수집이 멈춥니다. 같은 이유로 Top IP `54.221.71.105`(수집 cron)를 IP 차단하지 마세요.
+   `curl`로 사이트를 확인하면 이제 429 "Vercel Security Checkpoint"가 나옵니다. 정상이며, 확인은 브라우저나 Search Console 실제 URL 테스트로 합니다.
+
 3. **배포 로그는 CLI로 봅니다.** GitHub 체크에는 성공/실패만 나옵니다.
 
    ```bash
