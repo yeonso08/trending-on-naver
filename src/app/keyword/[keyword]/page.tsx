@@ -16,6 +16,7 @@ import { KeywordTrendChart } from '@/features/keyword-detail/ui/keyword-trend-ch
 import { RelatedNews } from '@/features/keyword-detail/ui/related-news'
 import { getKeywordTrend } from '@/shared/api/naver-datalab'
 import { SITE } from '@/shared/config/site'
+import { OG_SIZE } from '@/shared/model/og'
 import { formatDateKey, formatKstDate, toKstDateKey } from '@/shared/lib/format'
 import { buildBreadcrumbSchema, buildGraph } from '@/shared/model/structured-data'
 import { AdSlot } from '@/shared/ui/ad-slot'
@@ -71,12 +72,16 @@ export async function generateMetadata({ params }: KeywordPageProps): Promise<Me
     // (2026-10-02, 두 번째). 검색 유입은 5주에 5클릭뿐이었다. 페이지는 열어 두고 색인에서만 뺀다.
     // follow는 남겨 날짜별 기록·글로 이어지는 링크는 따라가게 한다.
     robots: { index: false, follow: true },
-    // images를 여기서 지정하면 파일 기반 opengraph-image.tsx를 덮어쓴다.
-    // 구글 RSS의 topic.picture는 gstatic 핫링크에 폭이 수백 px뿐이라
-    // summary_large_image 카드에 맞지 않는다. 우리가 그리는 1200x630 카드를 쓴다.
+    // 공유 카드는 홈 카드 한 장을 같이 쓴다(빌드 때 한 번 구워진다). 검색어별 카드를 요청마다
+    // 그리던 때는 크롤러가 페이지를 열 때마다 이미지도 새로 만들어, 계정의 Fast Origin Transfer
+    // 한도를 거의 다 썼다(2026-11-19, 계정 전체의 84%). noindex 페이지라 카드가 검색어마다
+    // 달라야 할 이유가 적다.
+    // 여기서 openGraph를 정의하면 상위의 파일 기반 이미지가 통째로 빠지므로 images를 직접 건다.
+    // 구글 RSS의 topic.picture는 gstatic 핫링크에 폭이 수백 px뿐이라 쓰지 않는다.
     openGraph: {
       title: `${keyword} — ${headline} | ${SITE.name}`,
       description,
+      images: [{ url: '/opengraph-image', ...OG_SIZE }],
     },
   }
 }
