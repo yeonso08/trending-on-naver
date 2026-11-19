@@ -1,6 +1,6 @@
 # 진행 상황과 다음 할 일
 
-마지막 갱신: 2026-11-16
+마지막 갱신: 2026-11-19
 
 > 이 문서는 **현재 상태와 다음 행동**만 적습니다. 완료된 작업의 자세한 내용은
 > [작업 기록](HISTORY.md), SNS·홍보 현황은 [홍보 진행 상황](marketing/PROGRESS.md)을 보세요.
@@ -30,13 +30,16 @@
 - AdSense: 9월 14일 첫 신청, 9월 15일 재신청 **모두 "가치가 별로 없는 콘텐츠"로 반려**(10월 2일 확인).
   원인은 사이트맵의 98%를 차지한 검색어 상세 페이지 1,899개로 보고, 10월 2일 이 페이지들을 `noindex`하고
   사이트맵에서 뺐습니다([작업 기록 1-23절](HISTORY.md)). **10월 19일 세 번째 심사를 요청했고 결과를 기다리는 중입니다.**
-- Vercel 사용량(10월 14일, 9월 13일 ~ 10월 13일): **ISR Writes 188,307 / 200,000으로 한도 아래**. 9월 28일 이후 하루
-  사용량은 거의 0이라 10월 말이면 수천 단위로 내려갑니다. Fast Origin Transfer는 5.27 / 10 GB로 절반을 넘었습니다.
-- Vercel CDN Requests(10월 2일 ~ 11월 1일): **916K / 1M(92%)**. 하루 약 29K 중 브라우저 위장 크롤러가 약 56%, OAI-SearchBot 17%,
-  수집 cron 5%이고, 경로로는 `/keyword/[keyword]`가 약 70%였습니다. 11월 2일 Firewall Bot Protection(Challenge)을 켜고
-  `/api/collect` Bypass 규칙을 추가했습니다. 켠 뒤 수집 정상(1분마다 200), 브라우저 접속 정상, Search Console 실제 URL 테스트 통과, 카카오톡 링크 미리보기 정상(사용자 확인)을
-  확인했습니다. **11월 4일쯤 Usage에서 CDN Requests 증가 속도가 줄었는지 확인**하고, 부족하면 robots.txt로 구글·네이버 외 봇의
-  `/keyword/` 접근을 막는 방안을 검토합니다(AEO 손해는 `/keyword/*`에 한정).
+- Vercel 사용량(11월 19일, 10월 19일 ~ 11월 18일, **누꼬와 같은 Hobby 계정 합계**): CDN Requests **1,010,273 / 1M(초과)**,
+  Fast Origin Transfer 9.28 / 10 GB. 그중 키위가 CDN Requests 61%(613K), Fast Origin Transfer 84%(7.82 GB)입니다.
+  11월 2일 Firewall Bot Protection(Challenge)으로 브라우저 위장 크롤러(당시 56%)를 막아 11월 3~10일은 내려갔다가,
+  11월 11일 이후 다시 올랐습니다. Bot Protection은 검증된 봇을 통과시키는데, 11월 19일 하루 통과 13.6K 중
+  GPTBot 5.1K·OAI-SearchBot 1.4K·SemrushBot 886이었고 `trending-on-naver.vercel.app` 주소로도 3.9K가 들어왔습니다
+  (Hobby Firewall은 최근 하루만 보여 급등 날의 구성은 직접 확인하지 못했습니다). 11월 19일 조치:
+  검색어별 OG 이미지 삭제(PR #48), robots.txt로 GPTBot·SemrushBot 전체·OAI-SearchBot `/keyword/` 차단,
+  검색어·날짜 페이지 CDN 60초 캐시(`Vercel-CDN-Cache-Control`, ISR Writes 안 씀), `.vercel.app` → `keywi.kr` 308.
+  **11월 21일쯤 Usage의 프로젝트별 그래프와 Firewall Traffic의 User Agent 순위로 효과를 확인**합니다.
+  ISR Writes는 9월 28일 이후 하루 거의 0입니다.
 - 인사이트 목록은 한 페이지 10개씩 나눕니다(`/articles`, `/articles/page/2`…, 10월 14일).
 - 기존 인사이트 글 9편은 사용자 확인 결과 충분합니다. 경험·의견을 추가하는 일은 **없습니다**.
 
