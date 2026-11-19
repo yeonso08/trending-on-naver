@@ -52,21 +52,23 @@
   (`keywi-mark.tsx`)와 애플 아이콘(`app/apple-icon.tsx`)이 그걸 함께 읽습니다.
   `public/brand/*.svg`와 `app/icon.svg`는 같은 수치로 뽑아낸 산출물이라 도형을 고치면
   함께 다시 만들어야 합니다.
-- OG 이미지는 `app/opengraph-image.tsx`(홈)와 `app/keyword/[keyword]/opengraph-image.tsx`
-  (검색어별)에서 `ImageResponse`로 그립니다. 공용 설정은 `shared/model/og.ts`.
+- OG 이미지는 `app/opengraph-image.tsx`(홈) 한 장을 `ImageResponse`로 그리고, 빌드 때 한 번
+  구워집니다. 공용 설정은 `shared/model/og.ts`. 검색어 상세는 `generateMetadata`에서 이 카드를
+  `images`로 직접 겁니다.
+
+  ⚠️ **검색어별 OG 라우트(`keyword/[keyword]/opengraph-image.tsx`)를 되살리지 마세요.**
+  요청마다 그리는 이미지라 크롤러가 검색어 페이지를 열 때마다 함수가 돌았고, 2026-11-19에
+  계정(누꼬와 같은 Hobby 계정) Fast Origin Transfer 한도 10GB 중 7.8GB를 이 프로젝트가 썼습니다.
+  한도는 계정 전체에 걸리므로 넘기면 다른 프로젝트까지 멈출 수 있습니다.
 
   ⚠️ **`ImageResponse`(satori)는 woff2를 읽지 못합니다.** 화면용 서브셋 92개가 전부
   woff2라 여기서는 못 씁니다. OG 전용으로 `public/fonts/pretendard/og/`에 통짜 woff
   두 벌(Bold·Regular, 각 1.1MB)을 따로 둡니다. 서버에서만 읽히고 브라우저로는 안 나갑니다.
   폰트를 안 넘기면 한글이 전부 두부(□□□)가 됩니다.
 
-  ⚠️ **`generateMetadata`에서 `openGraph.images`를 지정하면 파일 기반 `opengraph-image`를
-  덮어씁니다.** 예전에 검색어 상세가 구글 RSS의 `topic.picture`를 og:image로 쓰고 있어서
-  우리 카드가 무시됐습니다. 그 썸네일은 gstatic 핫링크에 폭이 수백 px뿐이라
-  `summary_large_image`에 맞지 않습니다. 다시 넣지 마세요.
-
-  검색어별 og:image URL은 `%25EB...` 형태로 이중 인코딩돼 보이는데 정상입니다 —
-  라우터가 한 번, 라우트의 `decodeURIComponent`가 한 번 디코딩합니다.
+  ⚠️ **페이지가 `openGraph`를 정의하면 상위의 파일 기반 `opengraph-image`가 통째로 빠집니다**
+  (얕은 병합). 그래서 검색어 상세는 `images`를 직접 겁니다. 구글 RSS의 `topic.picture`는
+  gstatic 핫링크에 폭이 수백 px뿐이라 `summary_large_image`에 맞지 않습니다. 다시 넣지 마세요.
 
 ## 명령어
 
