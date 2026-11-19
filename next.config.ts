@@ -1,7 +1,44 @@
 import type { NextConfig } from 'next'
 import { HTML_LIMITED_BOT_UA_RE } from 'next/dist/shared/lib/router/utils/html-bots'
 
+/**
+ * 요청마다 렌더하는 검색어·날짜 페이지를 Vercel CDN에만 이만큼 담아 둔다(2026-11-19).
+ *
+ * ISR이 아니라 CDN 캐시라 ISR Writes를 쓰지 않는다(9월에 그 한도를 넘겨 force-dynamic으로 바꿨다).
+ * 같은 페이지를 연달아 여는 크롤러 요청이 함수 실행·Fast Origin Transfer 없이 나간다.
+ * 순위는 최대 이만큼 늦게 보인다 — 원래도 RSS를 30초 메모리에 들고 있다(MEMORY_TTL_MS).
+ * CDN Requests 수는 캐시와 상관없이 세므로 그쪽은 robots.ts가 맡는다.
+ */
+const DYNAMIC_PAGE_CDN_TTL_SECONDS = 60
+
+/** Vercel 기본 주소. 크롤러가 이 주소로도 하루 3.9K씩 긁어 가서 정식 주소로 보낸다(2026-11-19) */
+const VERCEL_PRODUCTION_HOST = 'trending-on-naver.vercel.app'
+
 const nextConfig: NextConfig = {
+  async headers() {
+    const cdnCache = [
+      {
+        key: 'Vercel-CDN-Cache-Control',
+        value: `max-age=${DYNAMIC_PAGE_CDN_TTL_SECONDS}`,
+      },
+    ]
+    return [
+      { source: '/keyword/:keyword', headers: cdnCache },
+      { source: '/daily', headers: cdnCache },
+      { source: '/daily/:date', headers: cdnCache },
+    ]
+  },
+  async redirects() {
+    return [
+      {
+        // 미리보기 배포 주소(trending-on-naver-<해시>-…)는 정확히 같은 호스트가 아니라 걸리지 않는다
+        source: '/:path*',
+        has: [{ type: 'host', value: VERCEL_PRODUCTION_HOST }],
+        destination: 'https://keywi.kr/:path*',
+        permanent: true,
+      },
+    ]
+  },
   /**
    * Googlebot에게도 메타데이터를 <head>에 담아 보낸다.
    *
