@@ -1,9 +1,10 @@
 'use client'
 
-import { useTheme } from 'next-themes'
 import { useEffect, useRef, useState } from 'react'
 
+import { SantaPlow } from './santa-plow'
 import { SnowLedges } from './snow-ledges'
+import { SnowPlow } from './snow-plow'
 
 /**
  * 겨울 시즌 배경 눈.
@@ -16,6 +17,7 @@ import { SnowLedges } from './snow-ledges'
  * - `data-snow-ledge`가 붙은 요소(홈 제목 글자, 순위 카드 윗변)에 닿은 눈송이는 그 자리에 쌓인다.
  *   쌓인 눈은 콘텐츠 위 캔버스(z-40, 헤더 z-50 아래)에 그린다. 자세한 건 snow-ledges.ts.
  * - 내리는 눈은 콘텐츠 뒤(-z-10)에 깔리고 클릭을 막지 않는다. 카드처럼 배경이 있는 영역은 눈이 가려진다.
+ * - 카드 윗변에 눈이 어느 정도 쌓이면 산타 제설차가 지나가며 치운다. 자세한 건 snow-plow.ts.
  * - 움직임 줄이기 설정, 백그라운드 탭에서는 그리지 않는다.
  */
 
@@ -50,6 +52,25 @@ function isSnowSeason() {
   return SNOW_MONTHS.has(month)
 }
 
+/** 테마별 눈 토큰(globals.css의 `--snow*`) */
+function readTokens() {
+  const style = getComputedStyle(document.documentElement)
+  const get = (name: string) => style.getPropertyValue(name).trim()
+  return {
+    snow: get('--snow'),
+    scale: Number(get('--snow-scale')) || 1,
+    opacity: Number(get('--snow-opacity')) || 1,
+    // 흰 배경 위 눈송이의 형태를 잡아 주는 부드러운 그림자. 블러 0이면 끈다
+    shadow: get('--snow-shadow'),
+    shadowBlur: Number(get('--snow-shadow-blur')) || 0,
+    pile: get('--snow-pile'),
+    pileGlow: get('--snow-pile-glow'),
+    pileGlowBlur: Number(get('--snow-pile-glow-blur')) || 0,
+    pileGlowText: get('--snow-pile-glow-text') === '1',
+    pileOverlap: Number(get('--snow-pile-overlap') || 1),
+  }
+}
+
 function makeFlake(width: number, height: number, anywhere: boolean): Flake {
   // 깊이 0(멀다)~1(가깝다). 가까울수록 크고 빠르고 진하다
   const depth = Math.random()
@@ -70,7 +91,7 @@ function makeFlake(width: number, height: number, anywhere: boolean): Flake {
 export function Snowfall() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const pileRef = useRef<HTMLCanvasElement>(null)
-  const { resolvedTheme } = useTheme()
+  const plowRef = useRef<HTMLDivElement>(null)
   const [enabled, setEnabled] = useState(false)
 
   useEffect(() => {
@@ -96,24 +117,25 @@ export function Snowfall() {
     const pileCanvas = pileRef.current
     const ctx = canvas?.getContext('2d')
     const pileCtx = pileCanvas?.getContext('2d')
-    if (!enabled || !canvas || !ctx || !pileCanvas || !pileCtx) return
+    const plowArt = plowRef.current
+    if (!enabled || !canvas || !ctx || !pileCanvas || !pileCtx || !plowArt) return
 
-    // 테마가 바뀌면 이 effect가 다시 돌면서 새 토큰을 읽는다
-    const style = getComputedStyle(document.documentElement)
-    const snow = style.getPropertyValue('--snow').trim()
-    const scale = Number(style.getPropertyValue('--snow-scale')) || 1
-    const opacity = Number(style.getPropertyValue('--snow-opacity')) || 1
-    // 흰 배경 위 눈송이의 형태를 잡아 주는 부드러운 그림자. 블러 0이면 끈다
-    const shadow = style.getPropertyValue('--snow-shadow').trim()
-    const shadowBlur = Number(style.getPropertyValue('--snow-shadow-blur')) || 0
-    const pile = style.getPropertyValue('--snow-pile').trim()
-    const pileGlow = style.getPropertyValue('--snow-pile-glow').trim()
-    const pileGlowBlur = Number(style.getPropertyValue('--snow-pile-glow-blur')) || 0
-    const pileGlowText = style.getPropertyValue('--snow-pile-glow-text').trim() === '1'
-    const pileOverlap = Number(style.getPropertyValue('--snow-pile-overlap') || 1)
+    // 테마가 바뀌어도 이 effect는 다시 돌지 않는다. 다시 돌면 쌓인 눈·눈송이·제설차가 처음으로 돌아간다.
+    // 색 토큰만 <html> 클래스가 실제로 바뀐 뒤에 다시 읽는다. next-themes는 클래스를 자기 useEffect에서
+    // 바꾸는데 그건 자식(여기)보다 늦게 돌아서, resolvedTheme에 맞춰 읽으면 이전 테마 색을 집는다.
+    let t = readTokens()
+    const themeObserver = new MutationObserver(() => {
+      t = readTokens()
+    })
+    themeObserver.observe(document.documentElement, { attributeFilter: ['class', 'style'] })
 
     const ledges = new SnowLedges()
     ledges.attach()
+    const plow = new SnowPlow(
+      plowArt,
+      Array.from(plowArt.querySelectorAll<SVGGElement>('[data-wheel]')),
+      plowArt.querySelector<SVGGElement>('[data-body]')
+    )
 
     let width = 0
     let height = 0
@@ -140,6 +162,7 @@ export function Snowfall() {
 
     const draw = (time: number) => {
       ctx.clearRect(0, 0, width, height)
+      const { snow, scale, opacity, shadow, shadowBlur } = t
       ctx.shadowColor = shadowBlur ? `hsl(${shadow})` : 'transparent'
       ctx.shadowBlur = shadowBlur
       // 그림자를 살짝 아래로. 빛이 위에서 오는 것처럼 보여 테두리가 아니라 입체감으로 읽힌다
@@ -168,8 +191,18 @@ export function Snowfall() {
         ctx.fill()
       }
 
+      plow.step(time, ledges, width, height)
       pileCtx.clearRect(0, 0, width, height)
-      ledges.draw(pileCtx, pile, pileGlow, pileGlowBlur, pileGlowText, pileOverlap, height)
+      ledges.draw(
+        pileCtx,
+        t.pile,
+        t.pileGlow,
+        t.pileGlowBlur,
+        t.pileGlowText,
+        t.pileOverlap,
+        height
+      )
+      plow.draw(pileCtx, t.pile, t.pileGlow, t.pileGlowBlur)
       frame = requestAnimationFrame(draw)
     }
 
@@ -184,11 +217,13 @@ export function Snowfall() {
     document.addEventListener('visibilitychange', onVisibility)
     return () => {
       cancelAnimationFrame(frame)
+      themeObserver.disconnect()
       ledges.detach()
+      plow.stop()
       window.removeEventListener('resize', resize)
       document.removeEventListener('visibilitychange', onVisibility)
     }
-  }, [enabled, resolvedTheme])
+  }, [enabled])
 
   if (!enabled) return null
 
@@ -205,6 +240,8 @@ export function Snowfall() {
         aria-hidden="true"
         className="pointer-events-none fixed inset-0 z-40 h-full w-full"
       />
+      {/* 산타 제설차. 쌓인 눈 위, 헤더 아래 */}
+      <SantaPlow ref={plowRef} />
     </>
   )
 }

@@ -9,7 +9,7 @@
  * 그래서 스크롤해도 눈이 요소에 붙어 다닌다. 폭이 바뀌면(반응형·폰트 로드) 처음부터 다시 만든다.
  */
 
-type Ledge = {
+export type Ledge = {
   /** 요소 왼쪽 기준 첫 열의 x */
   x0: number
   /** 열마다 받침면의 y(요소 위쪽 기준) */
@@ -263,6 +263,35 @@ export class SnowLedges {
       host.ledges = ledges ?? []
       host.width = ledges ? width : -1
     }
+  }
+
+  /**
+   * 제설차가 달릴 상자 윗변. 화면 [top, bottom] 안에 윗변이 보이고 최대치 대비 `at` 이상 쌓인 것.
+   * measure() 뒤에 부른다.
+   */
+  findFullBox(at: number, top: number, bottom: number) {
+    for (const host of this.hosts) {
+      const ledge = host.ledges[0]
+      const rect = host.rect
+      if (host.kind !== 'box' || !ledge || !rect) continue
+      if (rect.top < top || rect.top > bottom) continue
+      let h = 0
+      let cap = 0
+      for (let i = 0; i < ledge.h.length; i++) {
+        h += ledge.h[i]
+        cap += ledge.cap[i]
+      }
+      if (cap > 0 && h / cap >= at) return host.el
+    }
+    return null
+  }
+
+  /** 그 요소의 지금 화면 위치와 윗변. 폭이 바뀌어 다시 만들어졌으면 새 윗변을 준다 */
+  route(el: HTMLElement) {
+    const host = this.hosts.find((h) => h.el === el)
+    const ledge = host?.ledges[0]
+    if (!host?.rect || !ledge) return null
+    return { rect: host.rect, ledge }
   }
 
   /** 매 프레임 한 번. 요소의 현재 화면 위치를 읽는다 */
