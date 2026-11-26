@@ -25,7 +25,7 @@ import { SnowPlow } from './snow-plow'
 const SNOW_MONTHS = new Set([11, 12, 1, 2])
 
 /** 이보다 가까운 눈송이만 쌓인다. 먼 눈은 뒤로 지나간다 */
-const LAND_DEPTH = 0.25
+const LAND_DEPTH = 0.12
 
 /** 화면 넓이 1만 px²당 눈송이 수. 너무 빽빽하면 글 읽기를 방해한다 */
 const DENSITY = 0.55

@@ -11,8 +11,8 @@ import type { SnowLedges } from './snow-ledges'
  * 둔덕·눈덩이는 쌓인 눈 캔버스에 같은 색으로 그린다.
  */
 
-/** 최대치 대비 이만큼 쌓이면 출동한다. 처음 화면 기준 1분 남짓 */
-const PLOW_AT = 0.5
+/** 최대치 대비 이만큼 쌓이면 출동한다. 처음 화면 기준 20~30초 */
+const PLOW_AT = 0.3
 /** 한 번 치운 뒤 최소 쉬는 시간(ms) */
 const COOLDOWN = 20_000
 /** 달리는 속도(px/ms) */

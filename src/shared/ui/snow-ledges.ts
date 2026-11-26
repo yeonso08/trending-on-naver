@@ -46,8 +46,8 @@ const TEXT_SLOPE = 0.7
 const UNDER_FULL = 2
 /** 처음부터 이만큼(최대치 대비) 얇게 쌓인 채 시작한다. 많으면 쌓이는 맛이 없고, 0이면 처음이 허전하다 */
 const PREFILL = 0.2
-/** 눈송이 하나가 보태는 양(반지름 배수) */
-const DEPOSIT = 6
+/** 눈송이 하나가 보태는 양(반지름 배수). 6이면 제설차가 오기까지 1~2분이 걸려 지루했다 */
+const DEPOSIT = 20
 
 const contourCache = new Map<string, { pad: number; tops: Int16Array; height: number }>()
 
@@ -368,8 +368,9 @@ export class SnowLedges {
  * 따로 보인다. 넓게 퍼뜨리면 옅게 덮이다가 이웃과 이어져 눈 더미가 된다.
  */
 function deposit(ledge: Ledge, c: number, amount: number) {
-  const spread = 8
-  const width = 18
+  // 한 번에 많이 쌓는 만큼 넓게 퍼뜨린다. 좁으면 닿은 자리마다 혹처럼 솟는다
+  const spread = 16
+  const width = 80
   let total = 0
   for (let k = -spread; k <= spread; k++) total += Math.exp(-(k * k) / width)
   for (let k = -spread; k <= spread; k++) {
