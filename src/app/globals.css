@@ -40,6 +40,23 @@
     /* 심볼의 과육 톤. 타일을 걷어냈으므로 배경 위에서 직접 버텨야 한다 */
     --brand-flesh: 81 52% 90%;
 
+    /* 겨울 배경 눈(라이트) — 배경 없이 흰 페이지 위에 바로 내린다. 순백은 흰 배경에 묻히므로
+       눈송이를 아주 옅은 회색빛으로 칠하고, 아래로 부드러운 그림자를 번져 입체감으로 형태를 잡는다.
+       그림자는 테두리처럼 보이지 않게 넓고 옅게, 살짝 아래로 내린다 */
+    --snow: 216 22% 93%;
+    --snow-scale: 1.5;
+    --snow-opacity: 1.6;
+    --snow-shadow: 218 25% 32% / 0.6;
+    --snow-shadow-blur: 3.5;
+    /* 글자·카드 위에 쌓인 눈. 내리는 눈과 같은 말투로 아주 옅은 회색빛 흰색 + 부드러운 그림자.
+       글자 위 눈도 그림자를 받아야 흰 배경 위에서 윗선이 보인다(--snow-pile-glow-text).
+       글자를 많이 덮으면 윗부분이 잘려 보이므로 덮는 두께를 줄인다(배율은 글자에만 걸린다) */
+    --snow-pile: 216 28% 96%;
+    --snow-pile-glow: 218 25% 32% / 0.5;
+    --snow-pile-glow-blur: 5;
+    --snow-pile-glow-text: 1;
+    --snow-pile-overlap: 0.35;
+
     --chart-1: 18 95% 52%;
     --chart-2: 265 70% 58%;
     --chart-3: 190 85% 40%;
@@ -80,6 +97,19 @@
     --brand: 88 55% 52%;
     --brand-foreground: 24 10% 6%;
     --brand-flesh: 88 26% 23%;
+
+    --snow: 0 0% 100%;
+    --snow-scale: 1;
+    --snow-opacity: 1;
+    --snow-shadow: 0 0% 0% / 0;
+    --snow-shadow-blur: 0;
+    /* 다크는 글자가 흰색이라 순백 눈이 글자와 붙어 보인다. 살짝 푸른 흰색 + 덜 덮기 */
+    --snow-pile: 210 25% 88%;
+    --snow-pile-glow: 0 0% 0% / 0.5;
+    --snow-pile-glow-blur: 4;
+    /* 다크는 흰 글자 위라 그림자가 글자 윗부분을 덮어 눈이 떠 보인다 */
+    --snow-pile-glow-text: 0;
+    --snow-pile-overlap: 0.3;
 
     --chart-1: 18 95% 58%;
     --chart-2: 265 75% 68%;

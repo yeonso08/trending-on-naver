@@ -38,7 +38,10 @@ export default async function Home() {
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
       <JsonLd data={buildGraph(buildWebSiteSchema(), buildTrendingItemListSchema(topics))} />
       <section className="mx-auto max-w-2xl text-center">
-        <h1 className="text-balance text-3xl font-extrabold leading-[1.15] tracking-tight sm:text-[42px]">
+        <h1
+          data-snow-ledge="text"
+          className="text-balance text-3xl font-extrabold leading-[1.15] tracking-tight sm:text-[42px]"
+        >
           지금 대한민국이
           <br className="sm:hidden" />
           <span className="text-heat"> 검색하는 것</span>
@@ -62,7 +65,10 @@ export default async function Home() {
             : 'mx-auto max-w-2xl'
         )}
       >
-        <TrendingSearches topics={topics} fetchedAt={fetchedAt} />
+        {/* 눈이 쌓이는 카드 윗변(Snowfall). 래퍼 윗변이 카드 윗변과 같다 */}
+        <div data-snow-ledge="box">
+          <TrendingSearches topics={topics} fetchedAt={fetchedAt} />
+        </div>
 
         {hasRectangleAd && (
           <div className="space-y-6 lg:sticky lg:top-20">
