@@ -4,6 +4,7 @@ import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
 import { ADSENSE_CLIENT, ADSENSE_ENABLED } from '@/shared/config/adsense'
 import { SITE } from '@/shared/config/site'
+import { Snowfall } from '@/shared/ui/snowfall'
 import { SiteFooter } from '@/widgets/site-footer/ui/site-footer'
 import { SiteHeader } from '@/widgets/site-header/ui/site-header'
 import { Analytics } from '@vercel/analytics/react'
@@ -82,6 +83,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           enableSystem
           disableTransitionOnChange
         >
+          <Snowfall />
           <SiteHeader />
           <main className="flex-1">{children}</main>
           <SiteFooter />
