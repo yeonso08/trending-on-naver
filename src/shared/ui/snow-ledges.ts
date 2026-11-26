@@ -9,7 +9,7 @@
  * 그래서 스크롤해도 눈이 요소에 붙어 다닌다. 폭이 바뀌면(반응형·폰트 로드) 처음부터 다시 만든다.
  */
 
-type Ledge = {
+export type Ledge = {
   /** 요소 왼쪽 기준 첫 열의 x */
   x0: number
   /** 열마다 받침면의 y(요소 위쪽 기준) */
@@ -20,6 +20,11 @@ type Ledge = {
   cap: Float32Array
   /** 받침면 아래로 덮는 두께. 글자·카드 윗부분을 살짝 덮어야 쌓인 눈으로 읽힌다 */
   overlap: number
+  /**
+   * 눈송이 하나가 쌓는 양의 배율. 최대 높이에 비례한다. 글자 위(최대 약 7px)에 카드(16px)와 같은 양을 쌓으면
+   * 눈송이 하나로 최대치까지 솟아, 제설차가 지나간 자리가 곧바로 다시 덮인 것처럼 보인다
+   */
+  gain: number
   /** 아래로 그림자를 번질지(카드 위 눈만). 글자 위에선 그림자가 글자 윗부분을 덮어 눈이 떠 보이므로 끈다 */
   glow: boolean
 }
@@ -46,8 +51,8 @@ const TEXT_SLOPE = 0.7
 const UNDER_FULL = 2
 /** 처음부터 이만큼(최대치 대비) 얇게 쌓인 채 시작한다. 많으면 쌓이는 맛이 없고, 0이면 처음이 허전하다 */
 const PREFILL = 0.2
-/** 눈송이 하나가 보태는 양(반지름 배수) */
-const DEPOSIT = 6
+/** 눈송이 하나가 보태는 양(반지름 배수). 6이면 제설차가 오기까지 1~2분이 걸려 지루했다 */
+const DEPOSIT = 20
 
 const contourCache = new Map<string, { pad: number; tops: Int16Array; height: number }>()
 
@@ -111,6 +116,7 @@ function buildBox(el: HTMLElement): Ledge[] {
     h: new Float32Array(len),
     cap: makeCap(len, BOX_MAX, BOX_SLOPE),
     overlap: 1.5,
+    gain: 1,
     glow: true,
   }
   prefill(ledge, 0)
@@ -192,6 +198,7 @@ function buildText(el: HTMLElement): Ledge[] | null {
       h: new Float32Array(len),
       cap: makeCap(len, line.size * TEXT_MAX_RATIO, TEXT_SLOPE),
       overlap: line.size * 0.17,
+      gain: Math.min(1, (line.size * TEXT_MAX_RATIO) / BOX_MAX),
       glow: false,
     }
     prefill(ledge, ledges.length * 11)
@@ -265,6 +272,49 @@ export class SnowLedges {
     }
   }
 
+  /**
+   * 제설차가 달릴 수 있는 자리(상자 윗변, 글자 줄 위) 전부와 쌓인 비율.
+   * `ground`는 첫 칸 받침면의 화면 y. measure() 뒤에 부른다.
+   */
+  routes() {
+    const out: {
+      el: HTMLElement
+      index: number
+      kind: Host['kind']
+      ratio: number
+      ground: number
+    }[] = []
+    for (const host of this.hosts) {
+      const rect = host.rect
+      if (!rect) continue
+      host.ledges.forEach((ledge, index) => {
+        let h = 0
+        let cap = 0
+        for (let i = 0; i < ledge.h.length; i++) {
+          h += ledge.h[i]
+          cap += ledge.cap[i]
+        }
+        if (cap <= 0) return
+        out.push({
+          el: host.el,
+          index,
+          kind: host.kind,
+          ratio: h / cap,
+          ground: rect.top + ledge.base[0],
+        })
+      })
+    }
+    return out
+  }
+
+  /** 그 자리의 지금 화면 위치와 선반. 폭이 바뀌어 다시 만들어졌으면 새 선반을 준다 */
+  route(el: HTMLElement, index: number) {
+    const host = this.hosts.find((h) => h.el === el)
+    const ledge = host?.ledges[index]
+    if (!host?.rect || !ledge) return null
+    return { rect: host.rect, ledge }
+  }
+
   /** 매 프레임 한 번. 요소의 현재 화면 위치를 읽는다 */
   measure() {
     for (const host of this.hosts) host.rect = host.el.getBoundingClientRect()
@@ -281,7 +331,7 @@ export class SnowLedges {
         if (c < 0 || c >= ledge.h.length) continue
         const surface = rect.top + ledge.base[c] - ledge.h[c]
         if (prevY < surface && y >= surface) {
-          deposit(ledge, c, r * DEPOSIT)
+          deposit(ledge, c, r * DEPOSIT * ledge.gain)
           return true
         }
       }
@@ -339,8 +389,9 @@ export class SnowLedges {
  * 따로 보인다. 넓게 퍼뜨리면 옅게 덮이다가 이웃과 이어져 눈 더미가 된다.
  */
 function deposit(ledge: Ledge, c: number, amount: number) {
-  const spread = 8
-  const width = 18
+  // 한 번에 많이 쌓는 만큼 넓게 퍼뜨린다. 좁으면 닿은 자리마다 혹처럼 솟는다
+  const spread = 16
+  const width = 80
   let total = 0
   for (let k = -spread; k <= spread; k++) total += Math.exp(-(k * k) / width)
   for (let k = -spread; k <= spread; k++) {
