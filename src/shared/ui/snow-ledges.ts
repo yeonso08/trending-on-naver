@@ -44,6 +44,8 @@ const TEXT_SLOPE = 0.7
 
 /** 이만큼(px) 쌓여야 글자·카드를 덮는 두께가 다 찬다. 처음 내린 눈이 띠처럼 보이지 않게 */
 const UNDER_FULL = 2
+/** 처음부터 이만큼(최대치 대비) 얇게 쌓인 채 시작한다. 많으면 쌓이는 맛이 없고, 0이면 처음이 허전하다 */
+const PREFILL = 0.2
 /** 눈송이 하나가 보태는 양(반지름 배수) */
 const DEPOSIT = 6
 
@@ -92,6 +94,14 @@ function makeCap(len: number, max: number, slope: number) {
   return cap
 }
 
+/** 처음 쌓인 양. 고르게 깔면 인공적이라 완만한 물결을 준다 */
+function prefill(ledge: Ledge, seed: number) {
+  for (let i = 0; i < ledge.h.length; i++) {
+    const wave = 0.6 + 0.4 * Math.sin((i + seed) / 9) * Math.sin((i + seed * 3) / 23)
+    ledge.h[i] = ledge.cap[i] * PREFILL * wave
+  }
+}
+
 function buildBox(el: HTMLElement): Ledge[] {
   const len = Math.floor(el.getBoundingClientRect().width) - BOX_INSET * 2
   if (len < 4) return []
@@ -103,6 +113,7 @@ function buildBox(el: HTMLElement): Ledge[] {
     overlap: 1.5,
     glow: true,
   }
+  prefill(ledge, 0)
   return [ledge]
 }
 
@@ -183,6 +194,7 @@ function buildText(el: HTMLElement): Ledge[] | null {
       overlap: line.size * 0.17,
       glow: false,
     }
+    prefill(ledge, ledges.length * 11)
     ledges.push(ledge)
   }
   return ledges
