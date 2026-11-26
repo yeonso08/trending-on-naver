@@ -42,10 +42,10 @@ const BOX_INSET = -2
 const TEXT_MAX_RATIO = 0.16
 const TEXT_SLOPE = 0.7
 
-/** 처음부터 이만큼(최대치 대비) 쌓인 채 시작한다 */
-const PREFILL = 0.75
+/** 이만큼(px) 쌓여야 글자·카드를 덮는 두께가 다 찬다. 처음 내린 눈이 띠처럼 보이지 않게 */
+const UNDER_FULL = 2
 /** 눈송이 하나가 보태는 양(반지름 배수) */
-const DEPOSIT = 1.6
+const DEPOSIT = 6
 
 const contourCache = new Map<string, { pad: number; tops: Int16Array; height: number }>()
 
@@ -92,14 +92,6 @@ function makeCap(len: number, max: number, slope: number) {
   return cap
 }
 
-/** 처음 쌓인 양. 고르게 쌓이면 인공적이라 완만한 물결을 준다 */
-function prefill(ledge: Ledge, seed: number) {
-  for (let i = 0; i < ledge.h.length; i++) {
-    const wave = 0.75 + 0.25 * Math.sin((i + seed) / 9) * Math.sin((i + seed * 3) / 23)
-    ledge.h[i] = ledge.cap[i] * PREFILL * wave
-  }
-}
-
 function buildBox(el: HTMLElement): Ledge[] {
   const len = Math.floor(el.getBoundingClientRect().width) - BOX_INSET * 2
   if (len < 4) return []
@@ -111,7 +103,6 @@ function buildBox(el: HTMLElement): Ledge[] {
     overlap: 1.5,
     glow: true,
   }
-  prefill(ledge, 0)
   return [ledge]
 }
 
@@ -192,7 +183,6 @@ function buildText(el: HTMLElement): Ledge[] | null {
       overlap: line.size * 0.17,
       glow: false,
     }
-    prefill(ledge, ledges.length * 11)
     ledges.push(ledge)
   }
   return ledges
@@ -313,13 +303,16 @@ export class SnowLedges {
         // 배율은 글자 위 눈에만 건다. 카드는 테두리를 덮어야 눈과 카드 사이에 선이 안 생긴다
         const under = ledge.glow ? ledge.overlap : ledge.overlap * overlapScale
         ctx.shadowColor = glowBlur && (ledge.glow || glowText) ? `hsl(${glow})` : 'transparent'
-        ctx.moveTo(left, rect.top + ledge.base[0] + under)
+        // 아랫면(덮는 두께)도 쌓인 만큼만 내려온다. 눈이 없는 자리는 두께 0이라 아무것도 안 보인다
+        const bottom = (i: number) =>
+          rect.top + ledge.base[i] + under * Math.min(1, ledge.h[i] / UNDER_FULL)
+        ctx.moveTo(left, bottom(0))
         for (let i = 0; i < len; i++) {
           ctx.lineTo(left + i + 0.5, rect.top + ledge.base[i] - ledge.h[i])
         }
-        ctx.lineTo(left + len, rect.top + ledge.base[len - 1] + under)
+        ctx.lineTo(left + len, bottom(len - 1))
         for (let i = len - 1; i >= 0; i--) {
-          ctx.lineTo(left + i + 0.5, rect.top + ledge.base[i] + under)
+          ctx.lineTo(left + i + 0.5, bottom(i))
         }
         ctx.closePath()
         ctx.fill()
@@ -329,14 +322,18 @@ export class SnowLedges {
   }
 }
 
-/** 닿은 자리를 중심으로 좁게 퍼뜨려 쌓는다 */
+/**
+ * 닿은 자리를 중심으로 완만하게 퍼뜨려 쌓는다. 좁게 쌓으면 첫 눈송이들이 동그란 알갱이(구슬)처럼
+ * 따로 보인다. 넓게 퍼뜨리면 옅게 덮이다가 이웃과 이어져 눈 더미가 된다.
+ */
 function deposit(ledge: Ledge, c: number, amount: number) {
-  const spread = 3
+  const spread = 8
+  const width = 18
   let total = 0
-  for (let k = -spread; k <= spread; k++) total += Math.exp(-(k * k) / 4)
+  for (let k = -spread; k <= spread; k++) total += Math.exp(-(k * k) / width)
   for (let k = -spread; k <= spread; k++) {
     const i = c + k
     if (i < 0 || i >= ledge.h.length) continue
-    ledge.h[i] = Math.min(ledge.cap[i], ledge.h[i] + (amount * Math.exp(-(k * k) / 4)) / total)
+    ledge.h[i] = Math.min(ledge.cap[i], ledge.h[i] + (amount * Math.exp(-(k * k) / width)) / total)
   }
 }
