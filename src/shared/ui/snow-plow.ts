@@ -3,16 +3,21 @@ import type { SnowLedges } from './snow-ledges'
 /**
  * 산타 제설차.
  *
- * 카드 윗변(`data-snow-ledge="box"`)에 눈이 어느 정도 쌓이면, 산타가 탄 오픈카 제설차가 왼쪽에서
- * 오른쪽으로 윗변을 따라 달리며 눈을 밀어낸다. 지나간 자리는 맨바닥이 되고, 밀린 눈은 날 앞에
- * 둔덕으로 모였다가 카드 끝에서 덩어리로 흘러 떨어진다. 그 뒤로 다시 눈이 쌓이면 또 온다.
+ * 카드 윗변(`data-snow-ledge="box"`)이나 제목 글자 줄 위(`"text"`)에 눈이 어느 정도 쌓이면, 산타가 탄
+ * 오픈카 제설차가 왼쪽에서 오른쪽으로 그 위를 달리며 눈을 밀어낸다. 지나간 자리는 맨바닥이 되고, 밀린 눈은
+ * 날 앞에 둔덕으로 모였다가 끝에서 덩어리로 흘러 떨어진다. 그 뒤로 다시 눈이 쌓이면 또 온다.
+ *
+ * 차는 한 대뿐이다. 두 자리가 함께 차 있어도 한 번에 한 곳만, 가장 오래 안 치운 곳부터 치운다.
+ * 많이 쌓인 순으로 고르면 금방 차는 제목 위만 계속 치우고 카드는 영영 못 간다. 제목 위는 최대치가 작아
+ * 금방 차므로 기준도 더 높게 잡는다.
+ * 제목 위는 헤더까지 공간이 좁아(데스크톱 약 56px) 차를 줄여서 달린다.
  *
  * 차 그림은 DOM(SVG, santa-plow.tsx)이고 이 클래스가 매 프레임 위치·바퀴 회전을 옮긴다.
  * 둔덕·눈덩이는 쌓인 눈 캔버스에 같은 색으로 그린다.
  */
 
-/** 최대치 대비 이만큼 쌓이면 출동한다. 처음 화면 기준 20~30초 */
-const PLOW_AT = 0.3
+/** 최대치 대비 이만큼 쌓이면 출동한다. 카드 위는 처음 화면 기준 20~30초 */
+const PLOW_AT = { box: 0.3, text: 0.5 }
 /** 한 번 치운 뒤 최소 쉬는 시간(ms) */
 const COOLDOWN = 20_000
 /** 달리는 속도(px/ms) */
@@ -23,6 +28,10 @@ const ART_H = 80
 const BLADE_X = 116
 const GROUND_Y = 79
 const WHEEL_R = 9
+/** 글자 위에서는 이만큼 줄인다. 헤더에 가리지 않을 만큼 */
+const TEXT_SCALE = 0.6
+/** 이보다 작아져야 들어가면 출발하지 않는다. 너무 작으면 산타가 안 보인다 */
+const MIN_SCALE = 0.35
 
 type Chunk = {
   x: number
@@ -36,7 +45,16 @@ type Chunk = {
   floor: number
 }
 
-type Run = { el: HTMLElement; front: number; carried: number; dist: number; spilled: boolean }
+type Run = {
+  el: HTMLElement
+  /** 그 요소의 몇 번째 선반(글자는 줄마다 하나) */
+  index: number
+  scale: number
+  front: number
+  carried: number
+  dist: number
+  spilled: boolean
+}
 
 export class SnowPlow {
   private run: Run | null = null
@@ -44,7 +62,8 @@ export class SnowPlow {
   private nextCheck = 0
   private cooldownUntil = 0
   private lastTime = 0
-  private scale = 1
+  /** 자리별 마지막으로 치운 시각. 번갈아 치우는 데 쓴다 */
+  private lastPlowed = new Map<string, number>()
   /** 마지막 프레임의 둔덕 위치(화면 좌표) */
   private berm: { x: number; y: number; h: number; w: number } | null = null
 
@@ -61,26 +80,23 @@ export class SnowPlow {
     const dt = Math.min(50, time - this.lastTime || 16)
     this.lastTime = time
     const k = dt / 16.7
-    this.scale = viewportW < 640 ? 0.8 : 1
     this.stepChunks(k, viewportH)
 
     if (!this.run) {
       if (time < this.nextCheck || time < this.cooldownUntil) return
       this.nextCheck = time + 500
-      // 헤더에 가리지 않고 차가 다 보일 만큼 아래, 화면 안에 윗변이 있을 때만 출발
-      const el = ledges.findFullBox(PLOW_AT, ART_H * this.scale + 64, viewportH - 24)
-      if (!el) return
-      this.run = { el, front: 0, carried: 0, dist: 0, spilled: false }
+      this.run = this.pickRoute(ledges, viewportW, viewportH)
+      if (!this.run) return
     }
 
     const run = this.run
-    const route = ledges.route(run.el)
+    const route = ledges.route(run.el, run.index)
     if (!route) {
       this.finish(time)
       return
     }
     const { rect, ledge } = route
-    const s = this.scale
+    const s = run.scale
     const len = ledge.h.length
     const advance = SPEED * dt
     const next = run.front + advance
@@ -116,7 +132,7 @@ export class SnowPlow {
         })
       }
     } else if (!run.spilled) {
-      // 카드 끝: 모은 눈이 덩어리로 흘러 떨어진다
+      // 끝: 모은 눈이 덩어리로 흘러 떨어진다
       run.spilled = true
       this.berm = null
       const n = Math.min(28, 6 + Math.round(run.carried / 60))
@@ -162,6 +178,32 @@ export class SnowPlow {
       'transform',
       `translate(0 ${(Math.sin(run.dist / 6) * 0.5).toFixed(2)})`
     )
+  }
+
+  /**
+   * 출발할 자리 고르기. 쌓인 비율이 기준을 넘고, 받침면이 화면 안에 있고, 그 위로 헤더까지 차가 들어갈
+   * 공간이 있는 곳 중 가장 많이 쌓인 곳.
+   */
+  private pickRoute(ledges: SnowLedges, viewportW: number, viewportH: number): Run | null {
+    const base = viewportW < 640 ? 0.8 : 1
+    const headerBottom = document.querySelector('header')?.getBoundingClientRect().bottom ?? 0
+    let best: Run | null = null
+    let bestLast = Infinity
+    let bestRatio = 0
+    for (const r of ledges.routes()) {
+      if (r.ratio < PLOW_AT[r.kind]) continue
+      if (r.ground > viewportH - 24) continue
+      const room = (r.ground - headerBottom - 4) / ART_H
+      const scale = Math.min(r.kind === 'text' ? base * TEXT_SCALE : base, room)
+      // 상자 위는 원래 크기가 다 들어갈 때만. 글자 위는 줄여서라도
+      if (r.kind === 'box' ? room < base : scale < MIN_SCALE) continue
+      const last = this.lastPlowed.get(routeKey(r.el, r.index)) ?? -Infinity
+      if (last > bestLast || (last === bestLast && r.ratio <= bestRatio)) continue
+      best = { el: r.el, index: r.index, scale, front: 0, carried: 0, dist: 0, spilled: false }
+      bestLast = last
+      bestRatio = r.ratio
+    }
+    return best
   }
 
   /** 둔덕과 눈덩이. 쌓인 눈 캔버스에 쌓인 눈과 같은 칠로 그린다 */
@@ -217,6 +259,7 @@ export class SnowPlow {
   }
 
   private finish(time: number) {
+    if (this.run) this.lastPlowed.set(routeKey(this.run.el, this.run.index), time)
     this.run = null
     this.berm = null
     this.cooldownUntil = time + COOLDOWN
@@ -227,4 +270,15 @@ export class SnowPlow {
     this.art.style.visibility = 'hidden'
     this.art.style.opacity = '0'
   }
+}
+
+const keys = new WeakMap<HTMLElement, string>()
+let nextKey = 0
+function routeKey(el: HTMLElement, index: number) {
+  let key = keys.get(el)
+  if (!key) {
+    key = String(nextKey++)
+    keys.set(el, key)
+  }
+  return `${key}:${index}`
 }
